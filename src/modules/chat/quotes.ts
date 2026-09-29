@@ -3,19 +3,10 @@ import type { Knowledgebase } from "@/modules/knowledgebase/loader";
 import { toPlainText } from "@/modules/knowledgebase/markdown";
 import { toMatchKey } from "@/modules/knowledgebase/normalize";
 import type { Section } from "@/modules/knowledgebase/types";
-import { QUOTE_SOURCE_PREFIX } from "./prompt";
 
-// Quotes in answers look like this (see prompt.ts):
-//
-//   > exact words copied from the section
-//   > — Source: People › Offboarding › Voluntary departure
+import { type ParsedQuote, parseQuotes } from "./quote-format";
 
-export type ParsedQuote = {
-  /** The quoted text, without the leading "> " markers or the source line. */
-  text: string;
-  /** The source exactly as written in the answer. */
-  source: string;
-};
+export { parseQuotes, type ParsedQuote };
 
 export type QuoteCheck = {
   text: string;
@@ -29,38 +20,12 @@ export type QuoteCheck = {
   foundIn?: { sectionId: string; source: string; links: { text: string; url: string }[] };
 };
 
-const BLOCKQUOTE_LINE = /^\s*>\s?(.*)$/;
-const SOURCE_LINE = new RegExp(`^${QUOTE_SOURCE_PREFIX}\\s*(.+?)\\s*$`);
 /** Separators people or models might use between breadcrumb steps. */
 const CRUMB_SEPARATOR = /\s*(?:›|>|»|\/)\s*/;
 /** "…" or "..." joins separate passages; each fragment must be found on its own. */
 const ELLIPSIS = /\s*(?:…|\.\.\.)\s*/;
 /** Fragments shorter than this after normalization aren't worth checking alone. */
 const MIN_FRAGMENT_CHARS = 8;
-
-/** Finds every blockquote whose last line is a `— Source:` line. Other blockquotes aren't handbook quotes. */
-export function parseQuotes(markdown: string): ParsedQuote[] {
-  const quotes: ParsedQuote[] = [];
-  let block: string[] = [];
-
-  const flush = () => {
-    const last = block.at(-1);
-    const source = last === undefined ? null : SOURCE_LINE.exec(last.trim());
-    if (source) {
-      const text = block.slice(0, -1).join("\n").trim();
-      if (text) quotes.push({ text, source: source[1]! });
-    }
-    block = [];
-  };
-
-  for (const line of markdown.split("\n")) {
-    const match = BLOCKQUOTE_LINE.exec(line);
-    if (match) block.push(match[1]!);
-    else flush();
-  }
-  flush();
-  return quotes;
-}
 
 /** Checks each quote in an answer against the handbook. */
 export function verifyQuotes(kb: Knowledgebase, answer: string): QuoteCheck[] {

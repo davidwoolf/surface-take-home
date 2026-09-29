@@ -37,11 +37,12 @@ If a task conflicts with a plan, **stop and ask**. Don't silently deviate. If a 
 src/
   main.tsx, app.tsx      app entry at the root of src/
   api/                   Hono app and routes. No domain logic here.
-  components/            shadcn + AI Elements components (CLI-managed; shadcn primitives in components/ui/)
+  components/            CLI-managed: shadcn primitives in components/ui/, AI Elements in components/ai-elements/
   lib/utils.ts           shadcn's cn() helper (CLI-managed)
   modules/
     chat/                everything AI SDK: agent, tools, prompt, providers,
                          history trimming, quote verification, error mapping
+      ui/                the chat UI (useChat, quote cards, tool steps, timer, stop, errors)
     knowledgebase/       markdown parsing, chunking, normalization, loader, BM25 search
 scripts/                 thin entry points: dev.ts, ask.ts
 knowledgebase/           the handbook as markdown, one file per handbook page (committed)

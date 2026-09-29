@@ -80,7 +80,7 @@ Notes from the build:
 
 **Done when:** the API tests pass, and `pnpm ask` answers real questions correctly with each configured provider.
 
-### M4 — Quote verification ✅
+### M4 — Quote verification ✅ (`aef7af8`)
 - **Quote format:** a blockquote that ends with `> — Source: <breadcrumb>` (set in M3). Parsing happens on the finished answer, so partial streaming doesn't affect it.
 - **Verifier:** resolves the source to its section and compares the normalized text, falling back to the whole handbook. It sends a `data-quote-verification` part after the text and before `finish`.
 - **Skipped** when a response is stopped or fails.
@@ -88,7 +88,16 @@ Notes from the build:
 
 **Done when:** the unit and API tests cover exact, near and fabricated quotes, and the skip-on-abort behavior.
 
-### M5 — Chat UI
+### M5 — Chat UI ✅
+Built in `src/modules/chat/ui/`, with AI Elements and shadcn primitives in `src/components/`:
+- **Answers:** tool steps ("Searched: …", "Read: <source>"), reasoning, streaming markdown (Streamdown), and quote cards showing the source, a Verified / Not found / Checking / Not checked badge, and handbook links.
+- **Timer:** a per-turn timer that freezes on Stopped or Failed.
+- **Stopping:** the Send button becomes Stop while busy, and Escape stops too.
+- **Errors:** failures show inline with Retry, and a follow-up question drops the failed partial answer.
+- **Unavailable screen:** a blocking empty state when the health check or a 503 says the knowledgebase or provider isn't available.
+- **Checked in Chrome:** ask, stream, Verified cards, Escape to stop, and a follow-up after a stopped turn. The remaining UI edge cases are left for manual testing.
+
+Original scope:
 - Install the AI Elements components (conversation, message, response, reasoning, tool, prompt input) into `src/components/`.
 - `useChat` wired to `/api/chat`, with messages in memory and a "New chat" reset.
 - Per-response elapsed timer, reasoning panel, tool chips, and quote cards with their verification state.
