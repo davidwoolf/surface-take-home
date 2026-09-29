@@ -174,30 +174,24 @@ This matches how other chat products behave.
   - The input is ready again immediately.
 
 ## Repo layout
+The file-level layout, kept current, is in [`AGENTS.md`](../../AGENTS.md#repo-layout). In short:
 ```
 surface/
-  AGENTS.md
-  .agents/skills/                 shadcn skill + project skills
-  README.md                       setup: pnpm install → .env → pnpm dev
+  AGENTS.md, README.md
+  .agents/skills/                 shadcn and ai-sdk skills
   .env.example
   knowledgebase/                  the handbook as markdown, one file per page (committed)
-    people/time-off.md, brand/startups.md, …
-  scripts/
-    dev.ts                        preflight → provider prompt → start Vite + Hono
-    ask.ts                        headless question → agent (M3)
+  scripts/                        dev.ts, ask.ts, eval.ts, lib/setup.ts
   src/
-    main.tsx
-    app.tsx
-    index.css
-    api/                          Hono app and routes
-      __tests__/
-    components/                   shadcn + AI Elements components (CLI-managed; primitives in components/ui/)
-      __tests__/                  only if we add non-trivial component logic
-    lib/utils.ts                  shadcn cn() helper (CLI-managed)
+    main.tsx, app.tsx, index.css
+    api/                          Hono: app.ts (routes), server.ts (startup), __tests__/
+    components/                   CLI-managed: ui/ (shadcn), ai-elements/
+    lib/utils.ts                  shadcn cn() helper
     modules/
-      chat/                       AI SDK: agent, tools, prompt, providers, trimming,
-        __tests__/                  quote verification, error mapping, message types
-      knowledgebase/              markdown parsing, chunking, normalization, loader, BM25 search
+      chat/                       agent, prompt, tools/, providers, respond, quotes, history, errors, message types
+        ui/                       the chat UI
+        __tests__/
+      knowledgebase/              markdown, breadcrumbs, chunking, normalization, loader, search
         __tests__/
   docs/plans/
 ```
