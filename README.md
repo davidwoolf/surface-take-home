@@ -9,8 +9,8 @@ Install these before you start.
 | Requirement | Version | Notes |
 |---|---|---|
 | Operating system | macOS or Linux | Developed and tested on macOS. On Windows, use [WSL 2](https://learn.microsoft.com/windows/wsl/install); native Windows hasn't been tested. |
-| [Node.js](https://nodejs.org) | 22.12 or later (24 LTS recommended) | `.nvmrc` pins 24, so `nvm use` picks it up. Check with `node -v`. |
-| [pnpm](https://pnpm.io) | 10.x | Comes with Node through Corepack: run `corepack enable` once. Check with `pnpm -v`. |
+| [Node.js](https://nodejs.org) | 22.12 or later (24 LTS recommended) | Check with `node -v`. |
+| [pnpm](https://pnpm.io) | 10.x | Check with `pnpm -v`. |
 | [git](https://git-scm.com) | any recent version | To clone the repo. |
 | An API key | at least one | [Anthropic (Claude)](https://console.anthropic.com/settings/keys), [OpenAI (ChatGPT)](https://platform.openai.com/api-keys) or [Google AI Studio (Gemini)](https://aistudio.google.com/apikey). Using the app costs a small amount of API credit per question. |
 
@@ -21,16 +21,11 @@ Install these before you start.
    git clone https://github.com/davidwoolf/surface-take-home.git
    cd surface-take-home
    ```
-2. **Use the right Node version and enable pnpm** (skip `nvm use` if you don't use nvm):
-   ```sh
-   nvm use
-   corepack enable
-   ```
-3. **Install dependencies:**
+2. **Install dependencies:**
    ```sh
    pnpm install
    ```
-4. **Add your API key(s).** Copy the example file, then set at least one key in `.env`:
+3. **Add your API key(s).** Copy the example file, then set at least one key in `.env`:
    ```sh
    cp .env.example .env
    ```
@@ -41,7 +36,7 @@ Install these before you start.
    # GOOGLE_GENERATIVE_AI_API_KEY=
    ```
    `.env` is gitignored; never commit keys.
-5. **Start the app:**
+4. **Start the app:**
    ```sh
    pnpm dev
    ```
@@ -105,7 +100,7 @@ All settings go in `.env`.
 
 | Message | Fix |
 |---|---|
-| `No API key found. Copy .env.example to .env and set at least one of: …` | Create `.env` and add a key (step 4). |
+| `No API key found. Copy .env.example to .env and set at least one of: …` | Create `.env` and add a key (step 3). |
 | `SURFACE_PROVIDER is "…", but … isn't set in .env.` | Set that provider's key, or change or remove `SURFACE_PROVIDER`. |
 | `Several API keys are set. Set SURFACE_PROVIDER to one of: …` | `pnpm dev` can't prompt without a terminal; set `SURFACE_PROVIDER`. |
 | `The handbook in knowledgebase/ can't be loaded: …` | A handbook file was deleted or broken. Restore it with `git checkout -- knowledgebase`. |
