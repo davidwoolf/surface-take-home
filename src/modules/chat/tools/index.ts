@@ -16,7 +16,7 @@ export function createHandbookTools(kb: Knowledgebase) {
   return {
     search_handbook: tool({
       description:
-        "Keyword search over the handbook. Returns up to one hit per section: its id, heading path, a short snippet and a score. " +
+        "Keyword search over the handbook. Returns up to one hit per section: its source (where it is in the handbook), its id, a short snippet and a score. " +
         "Use specific keywords, and search again with different wording or synonyms if the results miss. " +
         "Snippets are previews; read a section before quoting it.",
       inputSchema: searchHandbookInput,
@@ -25,7 +25,7 @@ export function createHandbookTools(kb: Knowledgebase) {
 
     read_section: tool({
       description:
-        "Reads one whole handbook section by id (from search_handbook results). Returns its markdown text and the links it contains. " +
+        "Reads one whole handbook section by id (from search_handbook results). Returns its source (cite this), markdown text and the links it contains. " +
         "Quote only text that appears here, word for word.",
       inputSchema: readSectionInput,
       execute: async ({ id }) => {

@@ -56,10 +56,10 @@ Each file has:
 
 ### 2. Knowledgebase loading & search (`src/modules/knowledgebase`)
 - `loadKnowledgebase()` reads every markdown file when the server starts (about 0.3s) and splits each file into sections at its headings.
-- It splits sections into chunks on block boundaries, with a small overlap, and builds the search index. Each chunk keeps its heading path, for example "Time off › Parental leave".
+- It splits sections into chunks on block boundaries, with a small overlap, and builds the search index. Each section and chunk keeps its **breadcrumb**: the handbook area from its folders (with readable names like "CS and onboarding"), then the page title and headings, for example "People › Time off › Parental leave". The breadcrumb is how answers cite sources.
 - It returns a typed status, `ready` or `invalid` (see [Error handling](#error-handling)).
 - BM25 search is held in memory (MiniSearch):
-  - The heading path is indexed as a separate field, boosted ×2.
+  - The breadcrumb is indexed as a separate field, boosted ×2.
   - Links are reduced to their text for indexing.
   - Terms are stemmed (`stemmer`), so "eligible" matches "eligibility".
   - Stopwords, single characters and "posthog" (on nearly every page) are dropped.
@@ -71,15 +71,16 @@ Each file has:
 Everything that uses the AI SDK lives together here: the agent, tools, prompt, provider factory, history trimming, quote verification, error mapping and shared message types.
 - An AI SDK `ToolLoopAgent` with a system prompt that enforces the [answering rules](01-purpose.md#answering-rules).
 - **Tools** (each call streams to the UI as visible activity):
-  - `search_handbook(query)` returns the top hits: chunk id, heading path and snippet.
-  - `read_section(id)` returns the full section text and its links.
+  - `search_handbook(query)` returns the top hits: source (breadcrumb), section id, snippet and score.
+  - `read_section(id)` returns the source, the full section text and its links.
 - **Reasoning:** medium effort, set per provider, because each provider needs its own switch to return reasoning text: Claude `thinking.display: "summarized"`, OpenAI `reasoningSummary: "auto"`, Gemini `includeThoughts: true` (see `providers.ts`). Claude's adaptive thinking skips reasoning on easy questions, so the reasoning panel only appears when there's reasoning.
 - A **step limit** (12) stops the tool loop from running away.
-- **Answer format:** markdown. Each quote is a blockquote whose last line names its source, which M4 verifies and renders as a quote card:
+- **Answer format:** markdown. Each quote is a blockquote whose last line names its source in plain words, which M4 verifies and renders as a quote card:
   ```
-  > exact words copied from the section
-  > — Source: Heading › Path (section-id)
+  > We ask for 30 days of notice by default …
+  > — Source: People › Offboarding › Voluntary departure
   ```
+  Section ids are internal (they're what `read_section` takes) and never appear in answers. Verification (M4) matches the source text back to its section.
 - **Quote verification** runs after the answer: each quote is checked against its chunk after normalization, and the results are sent as a `data-quote-verification` part.
 - **Provider factory:** maps `SURFACE_PROVIDER` and the optional `*_MODEL` override to an AI SDK model. The defaults are `claude-sonnet-5-5`, `gpt-6-astra` and `gemini-3.8-flash`, taken from each provider's current model list.
 
@@ -105,7 +106,7 @@ The preflight and selection logic are pure functions inside the modules, so they
 - `src/main.tsx` and `src/app.tsx` sit at the root of `src/`. Components from shadcn and AI Elements go in `src/components/`.
 - **Layout:** a single-page chat with a message list, a prompt input (Send and Stop) and a "New chat" button.
 - **Activity display** for each response: an elapsed-time counter, a collapsible reasoning panel, and tool-call chips (for example "Searched: *parental leave*" and "Read: *Benefits › Leave*").
-- **Quote cards** show the verbatim quote, heading path, any handbook links and the verification state.
+- **Quote cards** show the verbatim quote, its source (for example "People › Offboarding › Voluntary departure"), any handbook links and the verification state.
 - Streaming markdown, reasoning and tool displays come from AI Elements.
 
 ### 8. Agent-harness files

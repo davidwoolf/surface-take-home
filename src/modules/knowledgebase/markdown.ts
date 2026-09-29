@@ -1,3 +1,4 @@
+import { areaFor, buildBreadcrumb } from "./breadcrumb";
 import type { HandbookDocument, Section } from "./types";
 
 /** A section's body split into blocks (paragraphs, whole lists, tables, code blocks), kept for chunking. */
@@ -23,6 +24,7 @@ export function parseDocument(id: string, markdown: string): ParsedDocument {
   const sourcePath = fields.source;
   if (!title || !sourcePath) throw new MarkdownError(`${id}.md is missing a title or source in its frontmatter`);
 
+  const area = areaFor(id);
   const sections: ParsedSection[] = [];
   const headingStack: { level: number; text: string }[] = [];
   let current: { title: string; level: number; headingPath: string[]; lines: string[] } = {
@@ -39,6 +41,7 @@ export function parseDocument(id: string, markdown: string): ParsedDocument {
       documentId: id,
       title: current.title,
       headingPath: current.headingPath,
+      breadcrumb: buildBreadcrumb(area, current.headingPath),
       level: current.level,
       text: blocks.join("\n\n"),
       blocks,

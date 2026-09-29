@@ -19,6 +19,7 @@ export function buildChunks(sections: readonly ParsedSection[]): Chunk[] {
         sectionId: section.id,
         documentId: section.documentId,
         headingPath: section.headingPath,
+        breadcrumb: section.breadcrumb,
         text: group.join("\n\n"),
       });
     });

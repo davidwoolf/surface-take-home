@@ -3,14 +3,23 @@ import { CHUNK_MAX_CHARS, CHUNK_TARGET_CHARS, buildChunks } from "../chunk";
 import type { ParsedSection } from "../markdown";
 
 function section(blocks: string[]): ParsedSection {
-  return { id: "doc#s", documentId: "doc", title: "S", headingPath: ["Doc", "S"], level: 2, text: blocks.join("\n\n"), blocks };
+  return {
+    id: "doc#s",
+    documentId: "doc",
+    title: "S",
+    headingPath: ["Doc", "S"],
+    breadcrumb: ["Doc", "S"],
+    level: 2,
+    text: blocks.join("\n\n"),
+    blocks,
+  };
 }
 
 describe("buildChunks", () => {
   it("keeps a short section in one chunk", () => {
     const chunks = buildChunks([section(["One.", "Two."])]);
     expect(chunks).toEqual([
-      { id: "doc#s:1", sectionId: "doc#s", documentId: "doc", headingPath: ["Doc", "S"], text: "One.\n\nTwo." },
+      { id: "doc#s:1", sectionId: "doc#s", documentId: "doc", headingPath: ["Doc", "S"], breadcrumb: ["Doc", "S"], text: "One.\n\nTwo." },
     ]);
   });
 

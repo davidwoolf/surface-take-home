@@ -1,8 +1,11 @@
 import type { Knowledgebase } from "./loader";
+import { BREADCRUMB_SEPARATOR } from "./breadcrumb";
 import { toPlainText } from "./markdown";
 import { processTerm } from "./search-index";
 
 export type SearchHit = {
+  /** Where the section is in the handbook, for citing: "People › Offboarding › Voluntary departure". */
+  source: string;
   sectionId: string;
   /** The best-matching chunk within the section. */
   chunkId: string;
@@ -12,6 +15,8 @@ export type SearchHit = {
 };
 
 export type SectionContent = {
+  /** Where the section is in the handbook, for citing: "People › Offboarding › Voluntary departure". */
+  source: string;
   id: string;
   title: string;
   headingPath: string[];
@@ -46,6 +51,7 @@ export function searchHandbook(kb: Knowledgebase, query: string, limit = DEFAULT
     if (!chunk || seenSections.has(chunk.sectionId)) continue;
     seenSections.add(chunk.sectionId);
     hits.push({
+      source: chunk.breadcrumb.join(BREADCRUMB_SEPARATOR),
       sectionId: chunk.sectionId,
       chunkId: chunk.id,
       headingPath: chunk.headingPath,
@@ -62,6 +68,7 @@ export function getSection(kb: Knowledgebase, id: string): SectionContent | unde
   const section = kb.sections.find((s) => s.id === id);
   if (!section) return undefined;
   return {
+    source: section.breadcrumb.join(BREADCRUMB_SEPARATOR),
     id: section.id,
     title: section.title,
     headingPath: section.headingPath,

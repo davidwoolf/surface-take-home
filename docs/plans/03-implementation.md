@@ -55,12 +55,14 @@ Changed during M1: instead of a generic `pnpm ingest` command, the handbook is c
 
 **Done when:** the expected section is in the top 5 results for at least 90% of the check set (enforced by `retrieval.test.ts`).
 
-### M3 — Agent, startup & chat API ✅
+### M3 — Agent, startup & chat API ✅ (`df75973`)
 Notes from the build:
 - Reasoning needs per-provider options to be returned at all (see [02-architecture §3](02-architecture.md#3-chat-module-srcmoduleschat)).
 - The server removes unfinished tool calls from the history, so a follow-up after a stopped response doesn't fail at the provider.
 - Dropping a *failed* turn's partial output needs the client, which knows the turn failed, so it moves to M5.
 - Checked for real with Claude: `pnpm ask`, a curl stream through the Vite proxy, a client disconnect, and a broken knowledgebase file at `pnpm dev`.
+- Follow-up: quotes now cite a readable breadcrumb ("People › Offboarding › Voluntary departure") instead of a section id, and the plans no longer assume users can't open the handbook.
+- Follow-up (open): expected errors in API tests still print to stderr. The AI SDK's default `streamText` error logger prints them, and `ToolLoopAgent` has no typed `onError` to replace it. Tidy this up later.
 
 - **`scripts/dev.ts`:**
   1. The **knowledgebase preflight**, with every state from [Error handling A](02-architecture.md#a-knowledgebase-cant-be-loaded-pnpm-dev).
@@ -132,7 +134,7 @@ src/modules/knowledgebase/__tests__/       normalize, markdown, chunking, loader
 | Domain | What's tested |
 |---|---|
 | knowledgebase: normalize | ligatures, invisible characters, quotes, dashes, case, whitespace; it's idempotent |
-| knowledgebase: markdown | frontmatter, heading paths, unique section ids, blocks (lists, tables and code kept whole; `#` inside code isn't a heading), plain-text conversion |
+| knowledgebase: markdown | frontmatter, heading paths, breadcrumbs, unique section ids, blocks (lists, tables and code kept whole; `#` inside code isn't a heading), plain-text conversion |
 | knowledgebase: chunking | one chunk for short sections, splits near the target size with overlap, oversized blocks split under the maximum |
 | knowledgebase: loader/status | nested files load into documents, sections, chunks and an index; empty or missing directory and bad frontmatter → `invalid` with the restore message; the committed handbook loads |
 | knowledgebase: search | ranking, heading-path boost, empty and no-hit queries |

@@ -3,23 +3,21 @@
 > Status: **approved** (2026-09-29)
 
 ## Summary
-Surface is a private, natural-language chat interface that answers questions about a handbook. Every answer is grounded in the handbook, with direct quotes and citations. Users can't open the handbook PDF themselves, so the answer and its quotes have to stand on their own.
+Surface is a private, natural-language chat interface that answers questions about a handbook. Every answer is grounded in the handbook, with direct quotes and a readable source for each (for example "People › Offboarding › Voluntary departure"), so users can find the passage in the handbook themselves.
 
 ## Problem
 The handbook is a large PDF, and it's hard to find a specific answer in it. Surface lets users ask in plain language and get a sourced answer without reading or searching the document.
 
 ## Users
 - Individuals who run it **locally** on their own machine, set up from the README. Being local is what keeps it private, so there's no auth.
-- Users **do not have access to the source PDF**. Surface is how they reach the handbook's content.
 
 ## Core capabilities
 1. **Ask in plain language.** The user types a question and gets an answer drawn from the handbook.
 2. **Multi-turn conversation.** Follow-up questions work like a standard LLM chat: the conversation keeps its context for the whole session.
 3. **Cited, quoted answers.** Every handbook-based answer includes:
    - **direct quotes** of the handbook text it relies on
+   - a **readable source** for each quote: its place in the handbook, such as "People › Offboarding › Voluntary departure", never an internal id or file path
    - any **related links the handbook itself provides**, such as references to external sources
-
-   Users can't open the PDF, so quotes are the evidence, not pointers into a document.
 4. **Real-time streaming.** The answer streams in as it's generated.
 5. **Visible progress.** While it works, the UI streams:
    - elapsed time
@@ -38,7 +36,7 @@ The handbook is a large PDF, and it's hard to find a specific answer in it. Surf
 
 ## Non-goals
 - **No saved conversations.** Context lasts only for the session. There's no history, persistence or cross-session memory, and a new session always starts fresh.
-- **No access to the source document.** No PDF viewer, downloads or page deep links.
+- **Not a handbook viewer.** Surface answers questions; it doesn't display or browse the handbook itself.
 - **Not a general-purpose assistant.** General knowledge is tolerated for off-topic questions, not designed for.
 
 ## Success criteria

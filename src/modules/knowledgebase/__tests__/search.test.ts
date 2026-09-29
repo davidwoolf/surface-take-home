@@ -33,6 +33,7 @@ describe("searchHandbook", () => {
   it("returns one hit per section with its heading path and a snippet", () => {
     const [hit] = searchHandbook(kb, "sick");
     expect(hit).toMatchObject({
+      source: "People › Time off › Sick leave",
       sectionId: "people/time-off#sick-leave",
       chunkId: "people/time-off#sick-leave:1",
       headingPath: ["Time off", "Sick leave"],
@@ -64,6 +65,7 @@ describe("searchHandbook", () => {
 describe("getSection", () => {
   it("returns the section's markdown and its links", () => {
     expect(getSection(kb, "people/time-off#parental-leave")).toEqual({
+      source: "People › Time off › Parental leave",
       id: "people/time-off#parental-leave",
       title: "Parental leave",
       headingPath: ["Time off", "Parental leave"],

@@ -23,7 +23,7 @@ export function processTerm(term: string): string | null {
 export function buildSearchIndex(chunks: readonly Chunk[]): SearchIndex {
   const index = new MiniSearch<IndexedChunk>({ fields: ["heading", "text"], storeFields: [], processTerm });
   index.addAll(
-    chunks.map((chunk) => ({ id: chunk.id, text: toPlainText(chunk.text), heading: chunk.headingPath.join(" › ") })),
+    chunks.map((chunk) => ({ id: chunk.id, text: toPlainText(chunk.text), heading: chunk.breadcrumb.join(" › ") })),
   );
   return index;
 }

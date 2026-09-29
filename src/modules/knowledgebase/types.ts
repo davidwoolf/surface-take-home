@@ -15,6 +15,8 @@ export type Section = {
   title: string;
   /** Document title first, then each enclosing heading. */
   headingPath: string[];
+  /** Where the section sits in the handbook, for citing: area, document title, headings (e.g. People › Offboarding › Voluntary departure). */
+  breadcrumb: string[];
   /** 1 for the document's introduction, otherwise the markdown heading level (2–6). */
   level: number;
   /** Markdown body, without the heading line. */
@@ -27,6 +29,7 @@ export type Chunk = {
   sectionId: string;
   documentId: string;
   headingPath: string[];
+  breadcrumb: string[];
   /** Markdown, including inline links. */
   text: string;
 };
