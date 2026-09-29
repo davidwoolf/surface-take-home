@@ -2,7 +2,7 @@ import { type LanguageModel, safeValidateUIMessages } from "ai";
 import { Hono } from "hono";
 import { z } from "zod";
 import { type HandbookAgent, createHandbookAgent } from "@/modules/chat/agent";
-import { type HandbookUIMessage, messageMetadataSchema } from "@/modules/chat/message";
+import { type HandbookUIMessage, dataPartSchemas, messageMetadataSchema } from "@/modules/chat/message";
 import type { ProviderId, ProviderOptions } from "@/modules/chat/providers";
 import { streamHandbookResponse } from "@/modules/chat/respond";
 import type { KnowledgebaseStatus } from "@/modules/knowledgebase/loader";
@@ -59,11 +59,13 @@ export function createApp({ knowledgebase, chat, logError }: AppDeps) {
     const validated = await safeValidateUIMessages<HandbookUIMessage>({
       messages: body.data.messages,
       metadataSchema: messageMetadataSchema.optional(),
+      dataSchemas: dataPartSchemas,
     });
     if (!validated.success) return c.json({ code: "INVALID_REQUEST", message: "The messages aren't valid chat messages." }, 400);
 
     return streamHandbookResponse({
       agent,
+      knowledgebase: knowledgebase.knowledgebase,
       messages: validated.data,
       provider: chat.provider,
       modelId: chat.modelId,

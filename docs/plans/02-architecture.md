@@ -81,7 +81,13 @@ Everything that uses the AI SDK lives together here: the agent, tools, prompt, p
   > — Source: People › Offboarding › Voluntary departure
   ```
   Section ids are internal (they're what `read_section` takes) and never appear in answers. Verification (M4) matches the source text back to its section.
-- **Quote verification** runs after the answer: each quote is checked against its chunk after normalization, and the results are sent as a `data-quote-verification` part.
+- **Quote verification** (`quotes.ts`) runs once the answer is complete:
+  - **Find the quotes:** every blockquote ending in a `— Source:` line is a quote. Other blockquotes are ignored.
+  - **Resolve the source:** the source is matched to a section by its breadcrumb. `›`, `>`, `»` or `/` all work as separators, and missing leading steps are allowed ("Offboarding › Voluntary departure").
+  - **Compare:** the quote and the section are compared as plain text: links reduced to their text, bold, list markers and table pipes removed, then the shared normalization. A quote joined with "…" must match each part.
+  - **Fall back:** if the quote isn't in the cited section, every section is searched. A match elsewhere counts as verified and reports where it was actually found (`foundIn`), along with the section's links that appear in the quote.
+  - **Send the result:** one `data-quote-verification` part, after the answer text and just before the final `finish` chunk. There's no part when the answer has no quotes, and none when the response was stopped or failed.
+  - **History:** earlier answers keep their verification parts, and incoming messages are validated with the part's schema. Data parts aren't sent to the model.
 - **Provider factory:** maps `SURFACE_PROVIDER` and the optional `*_MODEL` override to an AI SDK model. The defaults are `claude-sonnet-5-5`, `gpt-6-astra` and `gemini-3.8-flash`, taken from each provider's current model list.
 
 ### 4. API (`src/api`, Hono)

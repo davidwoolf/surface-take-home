@@ -98,6 +98,68 @@ describe("POST /api/chat", () => {
     expect(readOutput).toMatchObject({ output: { id: "people/time-off#parental-leave", text: "Parental leave is up to 24 weeks." } });
   });
 
+  it("sends quote verification after the answer text and before finish", async () => {
+    const answer = [
+      "Up to 24 weeks.",
+      "",
+      "> Parental leave is up to 24 weeks.",
+      "> — Source: People › Time off › Parental leave",
+      "",
+      "> Parental leave is unlimited.",
+      "> — Source: People › Time off › Parental leave",
+    ].join("\n");
+    const { app } = appWith(scriptedModel([[...text(answer), finish("stop")]]));
+    const parts = await chunks(await post(app, [userMessage("How long is parental leave?")]));
+    const types = parts.map((p) => p.type);
+
+    const verification = parts.find((p) => p.type === "data-quote-verification");
+    expect(verification).toMatchObject({
+      data: {
+        quotes: [
+          { text: "Parental leave is up to 24 weeks.", status: "verified", foundIn: { source: "People › Time off › Parental leave" } },
+          { text: "Parental leave is unlimited.", status: "unverified" },
+        ],
+      },
+    });
+    expect(types.indexOf("data-quote-verification")).toBeGreaterThan(types.lastIndexOf("text-delta"));
+    expect(types.indexOf("data-quote-verification")).toBeLessThan(types.indexOf("finish"));
+  });
+
+  it("sends no verification when the answer has no quotes", async () => {
+    const { app } = appWith(scriptedModel([[...text("I couldn't find that in the handbook."), finish("stop")]]));
+    const parts = await chunks(await post(app, [userMessage("What is the dress code?")]));
+    expect(parts.some((p) => p.type === "data-quote-verification")).toBe(false);
+    expect(parts.at(-1)?.type).toBe("finish");
+  });
+
+  it("skips verification when the answer fails partway", async () => {
+    const quote = "> Parental leave is up to 24 weeks.\n> — Source: People › Time off › Parental leave\n";
+    const { app } = appWith(scriptedModel([[...text(quote), { type: "error", error: new Error("stream broke") }]]));
+    const parts = await chunks(await post(app, [userMessage("hi")]));
+    expect(parts.some((p) => p.type === "error")).toBe(true);
+    expect(parts.some((p) => p.type === "data-quote-verification")).toBe(false);
+  });
+
+  it("accepts earlier answers that carry verification parts", async () => {
+    const model = scriptedModel([[...text("Sure."), finish("stop")]]);
+    const { app } = appWith(model);
+    const response = await post(app, [
+      userMessage("How long is parental leave?", "u1"),
+      {
+        id: "a1",
+        role: "assistant",
+        parts: [
+          { type: "text", text: "Up to 24 weeks." },
+          { type: "data-quote-verification", data: { quotes: [{ text: "x", source: "y", status: "unverified" }] } },
+        ],
+      },
+      userMessage("And for adoption?", "u2"),
+    ]);
+    expect(response.status).toBe(200);
+    await response.text();
+    expect(JSON.stringify(model.prompts[0])).not.toContain("quote-verification");
+  });
+
   it("sends earlier turns to the model", async () => {
     const model = scriptedModel([[...text("Sure."), finish("stop")]]);
     const { app } = appWith(model);
@@ -189,10 +251,17 @@ describe("POST /api/chat", () => {
     const reader = response.body!.getReader();
     await reader.read();
     controller.abort();
-    await reader.cancel().catch(() => {});
+    const rest: string[] = [];
+    const decoder = new TextDecoder();
+    for (;;) {
+      const next = await reader.read().catch(() => ({ done: true as const, value: undefined }));
+      if (next.done) break;
+      rest.push(decoder.decode(next.value));
+    }
     await new Promise((resolve) => setTimeout(resolve, 200));
 
     expect(model.doStreamCalls).toHaveLength(1);
+    expect(rest.join("")).not.toContain("data-quote-verification");
   });
 
   it(`stops after ${MAX_STEPS} steps when the model keeps calling tools`, async () => {

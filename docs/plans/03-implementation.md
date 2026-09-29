@@ -80,10 +80,11 @@ Notes from the build:
 
 **Done when:** the API tests pass, and `pnpm ask` answers real questions correctly with each configured provider.
 
-### M4 — Quote verification
-- Define the quote format, for example a tagged block carrying the chunk id, and make it robust to partial streaming.
-- The verifier extracts quotes, normalizes them, and matches each against its chunk, falling back to the whole handbook. It sends a `data-quote-verification` part.
-- It's skipped when a response is stopped or fails.
+### M4 — Quote verification ✅
+- **Quote format:** a blockquote that ends with `> — Source: <breadcrumb>` (set in M3). Parsing happens on the finished answer, so partial streaming doesn't affect it.
+- **Verifier:** resolves the source to its section and compares the normalized text, falling back to the whole handbook. It sends a `data-quote-verification` part after the text and before `finish`.
+- **Skipped** when a response is stopped or fails.
+- **`pnpm ask`** prints a verification summary. With real Claude answers to 7 questions (lists, a table, links, quotes joined with "…"), 29 of 29 quotes verified.
 
 **Done when:** the unit and API tests cover exact, near and fabricated quotes, and the skip-on-abort behavior.
 

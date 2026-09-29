@@ -1,6 +1,7 @@
 import { createHandbookAgent } from "../src/modules/chat/agent";
 import { toChatError } from "../src/modules/chat/errors";
 import { PROVIDERS } from "../src/modules/chat/providers";
+import { verifyQuotes } from "../src/modules/chat/quotes";
 import { chooseProvider, fail, loadEnv, requireKnowledgebase } from "./lib/setup";
 
 // Runs the agent headless for one question: `pnpm ask "How long is parental leave?"`.
@@ -28,6 +29,7 @@ console.log(dim(`${PROVIDERS[provider].label}, model ${modelId}\n`));
 try {
   const result = await agent.stream({ prompt: question, abortSignal: controller.signal });
   let section: "reasoning" | "text" | null = null;
+  let answer = "";
   for await (const part of result.stream) {
     switch (part.type) {
       case "reasoning-delta":
@@ -38,6 +40,7 @@ try {
       case "text-delta":
         if (section !== "text") process.stdout.write("\n\n");
         section = "text";
+        answer += part.text;
         process.stdout.write(part.text);
         break;
       case "tool-call":
@@ -56,7 +59,15 @@ try {
         throw part.error;
     }
   }
-  console.log(dim(`\n\n[${((Date.now() - started) / 1000).toFixed(1)}s]`));
+  const quotes = verifyQuotes(knowledgebase, answer);
+  const verified = quotes.filter((q) => q.status === "verified").length;
+  console.log(dim(`\n\n[${((Date.now() - started) / 1000).toFixed(1)}s · quotes verified: ${verified}/${quotes.length}]`));
+  for (const quote of quotes) {
+    if (quote.status === "unverified") console.log(dim(`  ✗ unverified: "${quote.text.slice(0, 100)}" (${quote.source})`));
+    else if (quote.foundIn && quote.foundIn.source !== quote.source) {
+      console.log(dim(`  ↪ cited ${quote.source}, found in ${quote.foundIn.source}`));
+    }
+  }
 } catch (error) {
   if (controller.signal.aborted) process.exit(130);
   console.error(dim(String(error instanceof Error ? error.stack : error)));
