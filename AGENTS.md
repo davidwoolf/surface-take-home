@@ -77,4 +77,5 @@ docs/plans/              approved plans
 
 ## Git
 - Commit directly on `main`, at least once per milestone, with passing typecheck and tests.
+- **Never `git push` automatically.** The remote is `origin` (github.com/davidwoolf/surface-take-home). Push only when a human explicitly asks.
 - Use conventional commit messages (`feat:`, `fix:`, `test:`, `docs:`, `chore:`).
