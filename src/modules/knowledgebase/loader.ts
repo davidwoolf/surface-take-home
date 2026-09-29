@@ -19,33 +19,42 @@ export type KnowledgebaseStatus =
   | { status: "invalid"; message: string };
 
 /**
- * Reads every markdown file in the knowledgebase, splits it into sections and
- * chunks, and builds the search index. Never throws; problems come back as a status.
+ * Reads every markdown file in the knowledgebase and builds it. Never throws;
+ * problems come back as a status.
  */
 export function loadKnowledgebase(dir: string = KNOWLEDGEBASE_DIR): KnowledgebaseStatus {
   const files = listMarkdownFiles(dir);
   if (files.length === 0) return { status: "invalid", message: messages.invalid("no handbook files were found") };
 
-  const documents: HandbookDocument[] = [];
-  const sections: Section[] = [];
-  const chunks: Chunk[] = [];
   try {
-    for (const file of files) {
-      const id = path.relative(dir, file).replace(/\.md$/, "").split(path.sep).join("/");
-      const parsed = parseDocument(id, fs.readFileSync(file, "utf8"));
-      const docChunks = buildChunks(parsed.sections);
-      documents.push(parsed.document);
-      for (const { blocks: _blocks, ...section } of parsed.sections) {
-        sections.push({ ...section, chunkIds: docChunks.filter((c) => c.sectionId === section.id).map((c) => c.id) });
-      }
-      chunks.push(...docChunks);
-    }
+    const knowledgebase = buildKnowledgebase(
+      files.map((file) => ({
+        id: path.relative(dir, file).replace(/\.md$/, "").split(path.sep).join("/"),
+        markdown: fs.readFileSync(file, "utf8"),
+      })),
+    );
+    return { status: "ready", knowledgebase };
   } catch (error) {
     if (error instanceof MarkdownError) return { status: "invalid", message: messages.invalid(error.message) };
     throw error;
   }
+}
 
-  return { status: "ready", knowledgebase: { documents, sections, chunks, index: buildSearchIndex(chunks) } };
+/** Builds documents, sections, chunks and the search index from markdown files. Pure; throws MarkdownError. */
+export function buildKnowledgebase(files: readonly { id: string; markdown: string }[]): Knowledgebase {
+  const documents: HandbookDocument[] = [];
+  const sections: Section[] = [];
+  const chunks: Chunk[] = [];
+  for (const { id, markdown } of files) {
+    const parsed = parseDocument(id, markdown);
+    const docChunks = buildChunks(parsed.sections);
+    documents.push(parsed.document);
+    for (const { blocks: _blocks, ...section } of parsed.sections) {
+      sections.push({ ...section, chunkIds: docChunks.filter((c) => c.sectionId === section.id).map((c) => c.id) });
+    }
+    chunks.push(...docChunks);
+  }
+  return { documents, sections, chunks, index: buildSearchIndex(chunks) };
 }
 
 /** All .md files under dir, sorted so loading is deterministic. */

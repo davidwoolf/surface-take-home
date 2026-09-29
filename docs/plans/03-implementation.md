@@ -24,7 +24,7 @@
 
 **Done when:** `pnpm dev` serves a blank shadcn page with `/api/health` behind the proxy, and `pnpm test` runs a sample test in `src/api/__tests__/` and one in `src/modules/**/__tests__/`.
 
-### M1 — Knowledgebase
+### M1 — Knowledgebase ✅ (`97d7ec7`)
 Changed during M1: instead of a generic `pnpm ingest` command, the handbook is converted **once** to markdown and committed. The product is a knowledgebase for this handbook, not a PDF importer.
 
 1. **Spike** (done): pdf.js on the real PDF.
@@ -44,15 +44,16 @@ Changed during M1: instead of a generic `pnpm ingest` command, the handbook is c
 
 **Done when:** you're happy with the markdown sample, and the loader tests pass.
 
-### M2 — Search, tools & retrieval check set
-- BM25 search in `modules/knowledgebase`.
-- `search_handbook` and `read_section` as AI SDK tools with zod schemas, in `modules/chat/tools/`.
+### M2 — Search, tools & retrieval check set ✅
+- BM25 search in `modules/knowledgebase/search.ts`: stemming, stopwords, heading boost, and one hit per section with a snippet.
+- `search_handbook` and `read_section` as AI SDK tools with zod schemas, in `modules/chat/tools/`. An unknown section id throws, and the SDK returns that to the model as a tool error.
+- **Result:** the check set scores 26 of 28 in the top 5 (93%); the plain-BM25 baseline was 24 of 28. The two misses need a synonym ("vacation" → "time off") or compete with pull-request pages. The agent covers those by searching again with other words.
 - **Retrieval check set:** I generate 20–30 questions from the handbook text, each with its expected section(s).
   - They cover a range of topics and phrasings, including synonyms that don't appear word for word in the handbook.
   - They include multi-section questions, and 4–5 questions the handbook doesn't cover.
   - You review the set once. It's committed next to its test in `modules/knowledgebase/__tests__/` and runs in the default suite, since the handbook is in the repo.
 
-**Done when:** the expected section is in the top-k results for at least 90% of the check set. _(Threshold to confirm once we see the baseline.)_
+**Done when:** the expected section is in the top 5 results for at least 90% of the check set (enforced by `retrieval.test.ts`).
 
 ### M3 — Agent, startup & chat API
 - **`scripts/dev.ts`:**

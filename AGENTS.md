@@ -22,7 +22,7 @@ If a task conflicts with a plan, **stop and ask**. Don't silently deviate. If a 
 - Vercel AI SDK, with the direct provider packages: `@ai-sdk/anthropic`, `@ai-sdk/openai`, `@ai-sdk/google`
 - shadcn/ui and the AI SDK chat components (AI Elements, installed through the shadcn registry). **No other UI kits.**
 - Vitest
-- BM25 search, in memory. **No embeddings.**
+- BM25 search, in memory (MiniSearch + `stemmer`). **No embeddings.** Changes to search must keep `retrieval.test.ts` passing.
 
 ## Commands
 `pnpm ask` arrives in M3. Until then, it prints a "not implemented" message.
@@ -57,7 +57,7 @@ docs/plans/              approved plans
 - **Use one text normalization** (`modules/knowledgebase/normalize.ts`) for search and quote verification. Don't fork it.
 - **Check AI SDK and AI Elements APIs against the installed docs** (`node_modules/ai/docs/`, `node_modules/@ai-sdk/*/docs/`) before using them. The API has changed a lot, so don't write it from memory. Look up model IDs at implementation time; don't hard-code them from memory.
 - **UI is shadcn only.** Add components through the shadcn CLI (`pnpm dlx shadcn@latest add <component>`), and use the shadcn skill in `.agents/skills/`. The project uses the `radix-nova` style with Lucide icons (see `components.json`).
-- **Skills** are managed with the `skills` CLI and recorded in `skills-lock.json`. Install them into `.agents/skills/` (for example `npx skills add <source> --agent codex`, which targets `.agents/skills`).
+- **Skills** in `.agents/skills/`: `shadcn` and `ai-sdk`. Load `ai-sdk` before touching AI SDK code. Skills are managed with the `skills` CLI and recorded in `skills-lock.json`. Install them into `.agents/skills/` (for example `npx skills add <source> --agent codex`, which targets `.agents/skills`).
 - Run `pnpm typecheck` and `pnpm test` before every commit.
 
 ## Behavior that must not regress

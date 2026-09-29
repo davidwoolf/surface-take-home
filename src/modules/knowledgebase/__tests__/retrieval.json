@@ -1,0 +1,40 @@
+{
+  "description": "Retrieval check set for the committed handbook. Each covered question lists the section ids that answer it; a question passes when any of them is in the top results. Not-covered questions are kept for agent evaluation (M6) and aren't scored here.",
+  "covered": [
+    { "question": "How much time off am I expected to take each year?", "expected": ["people/time-off"] },
+    { "question": "Do I need my manager's approval to go on vacation?", "expected": ["people/time-off#permissionless-time-off"] },
+    { "question": "How long is parental leave?", "expected": ["people/time-off#parental-leave"] },
+    { "question": "What gift do I get for my second work anniversary?", "expected": ["people/time-off#2nd-year-anniversary"] },
+    { "question": "How much does PostHog match on 401k contributions?", "expected": ["people/benefits#401k-contribution"] },
+    { "question": "What are the employer and employee pension contributions in the UK?", "expected": ["people/benefits#pension"] },
+    { "question": "When do I need to attach a receipt to an expense?", "expected": ["people/spending-money#receipts"] },
+    { "question": "Can I fly business class on work trips?", "expected": ["people/spending-money#travel"] },
+    { "question": "Am I allowed to have a side project or freelance work?", "expected": ["people/side-gigs", "people/side-gigs#managing-time", "people/side-gigs#getting-signoff"] },
+    { "question": "Is there a budget for courses and professional qualifications?", "expected": ["people/training#training-budget"] },
+    { "question": "What should I do if my flight is delayed and I have to stay overnight?", "expected": ["company/offsites#flight-delays"] },
+    { "question": "Can my partner or family come along to an offsite?", "expected": ["company/offsites#partners-family-joining-offsites"] },
+    { "question": "Where is the London office?", "expected": ["company/offsites#london", "company/offsites#hedge-house"] },
+    { "question": "How do we restock items in the merch store?", "expected": ["company/merch-store#how-to-reorder-merch"] },
+    { "question": "How quickly should I respond to a pull request review request?", "expected": ["engineering/how-we-review#turnaround"] },
+    { "question": "What prefixes should I use on code review comments?", "expected": ["engineering/how-we-review#review-comment-conventions"] },
+    { "question": "Does being on call include weekends?", "expected": ["engineering/operations/on-call-rotation#be-prepared"] },
+    { "question": "When is a customer eligible for a refund?", "expected": ["growth/sales/refunds#eligibility-criteria"] },
+    { "question": "How do I add credits to a customer's account in billing admin?", "expected": ["growth/sales/refunds#issuing-credits"] },
+    { "question": "How many support zero weeks does each support engineer get per quarter?", "expected": ["support/support-zero#how-do-support-zero-weeks-work"] },
+    { "question": "How much notice do I need to give if I resign?", "expected": ["people/offboarding#voluntary-departure"] },
+    { "question": "Will PostHog give a reference for a former employee?", "expected": ["people/offboarding#references-and-employment-verification"] },
+    { "question": "How often do we run team surveys?", "expected": ["people/feedback#team-surveys"] },
+    { "question": "How many credits do startups get from the startup program?", "expected": ["brand/startups", "brand/startups#posthog-for-startups"] },
+    { "question": "What are PostHog's values?", "expected": ["values"] },
+    { "question": "How do I request artwork or merch designs from the design team?", "expected": ["brand/art-requests"] },
+    { "question": "How is the hackathon run at the all-company offsite?", "expected": ["company/offsites#all-company-offsite-hackathon"] },
+    { "question": "Which private health insurance provider do we use in the UK?", "expected": ["people/benefits#private-health-insurance"] }
+  ],
+  "notCovered": [
+    "What is the dress code for the office?",
+    "How do I reset my Okta password?",
+    "What is PostHog's current stock price?",
+    "What's a good recipe for banana bread?",
+    "Who won the 2022 World Cup?"
+  ]
+}

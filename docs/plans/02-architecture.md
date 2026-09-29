@@ -58,7 +58,13 @@ Each file has:
 - `loadKnowledgebase()` reads every markdown file when the server starts (about 0.3s) and splits each file into sections at its headings.
 - It splits sections into chunks on block boundaries, with a small overlap, and builds the search index. Each chunk keeps its heading path, for example "Time off › Parental leave".
 - It returns a typed status, `ready` or `invalid` (see [Error handling](#error-handling)).
-- BM25 search is held in memory (MiniSearch). The heading path is indexed as a boostable field, and links are reduced to their text for indexing.
+- BM25 search is held in memory (MiniSearch):
+  - The heading path is indexed as a separate field, boosted ×2.
+  - Links are reduced to their text for indexing.
+  - Terms are stemmed (`stemmer`), so "eligible" matches "eligibility".
+  - Stopwords, single characters and "posthog" (on nearly every page) are dropped.
+  - Prefix matching applies to terms of 4+ characters, and light fuzzy matching to terms of 5+.
+- Search returns at most one hit per section (its best chunk), so each hit is a distinct place to read.
 - The shared text normalization (`normalize.ts`) is used for search and quote verification.
 
 ### 3. Chat module (`src/modules/chat`)
