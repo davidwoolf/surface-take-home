@@ -16,7 +16,8 @@ const env = { ...process.env, SURFACE_PROVIDER: provider };
 const children: ChildProcess[] = [];
 
 function start(name: string, command: string, args: string[]) {
-  const child = spawn(command, args, { stdio: "inherit", env });
+  // On Windows, pnpm is a .cmd shim that needs a shell to run.
+  const child = spawn(command, args, { stdio: "inherit", env, shell: process.platform === "win32" });
   child.on("exit", (code) => {
     console.error(`[dev] ${name} exited (code ${code ?? "null"}), shutting down`);
     shutdown(code ?? 1);

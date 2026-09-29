@@ -42,9 +42,11 @@ export function streamHandbookResponse({
   abortSignal,
   logError = (error) => console.error("[chat]", error),
 }: RespondOptions): Response {
-  const onError = (error: unknown) => {
+  // The agent logs model errors itself (see createHandbookAgent); here they only become user-safe messages.
+  const toMessage = (error: unknown) => toChatError(error, provider).message;
+  const logAndMap = (error: unknown) => {
     logError(error);
-    return toChatError(error, provider).message;
+    return toMessage(error);
   };
 
   const stream = createUIMessageStream<HandbookUIMessage>({
@@ -53,7 +55,7 @@ export function streamHandbookResponse({
         agent,
         uiMessages: prepareHistory(messages),
         abortSignal,
-        onError,
+        onError: toMessage,
         messageMetadata: ({ part }) => {
           if (part.type === "start") return { startedAt: Date.now(), model: modelId };
           if (part.type === "finish") return { finishedAt: Date.now() };
@@ -82,7 +84,8 @@ export function streamHandbookResponse({
       }
       if (finish) writer.write(finish);
     },
-    onError,
+    // Failures outside the model call (for example, preparing the history) are logged here.
+    onError: logAndMap,
   });
 
   return createUIMessageStreamResponse({ stream });

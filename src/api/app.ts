@@ -18,13 +18,14 @@ export type AppDeps = {
 
 const chatBody = z.object({ messages: z.array(z.unknown()).min(1) });
 
-export function createApp({ knowledgebase, chat, logError }: AppDeps) {
+export function createApp({ knowledgebase, chat, logError = (error) => console.error("[chat]", error) }: AppDeps) {
   const agent: HandbookAgent | null =
     knowledgebase.status === "ready" && chat
       ? createHandbookAgent({
           model: chat.model,
           knowledgebase: knowledgebase.knowledgebase,
           providerOptions: chat.providerOptions,
+          logError,
         })
       : null;
 

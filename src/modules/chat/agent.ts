@@ -11,11 +11,17 @@ export function createHandbookAgent({
   model,
   knowledgebase,
   providerOptions,
+  logError,
 }: {
   model: LanguageModel;
   knowledgebase: Knowledgebase;
   /** Provider-specific settings, such as turning on streamed reasoning (see PROVIDERS). */
   providerOptions?: ProviderOptions;
+  /**
+   * Receives model and stream errors. Without it the AI SDK prints them with
+   * console.error, which duplicates the app's own logging.
+   */
+  logError?: (error: unknown) => void;
 }) {
   return new ToolLoopAgent({
     model,
@@ -23,6 +29,8 @@ export function createHandbookAgent({
     tools: createHandbookTools(knowledgebase),
     stopWhen: isStepCount(MAX_STEPS),
     providerOptions,
+    // ToolLoopAgent has no onError setting, but prepareCall's result is passed to streamText, which does.
+    prepareCall: (args) => (logError ? { ...args, onError: ({ error }: { error: unknown }) => logError(error) } : args),
   });
 }
 
