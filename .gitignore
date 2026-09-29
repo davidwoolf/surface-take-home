@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+dist-ssr/
+build/
+*.tsbuildinfo
+.vite/
+
+# Test output
+coverage/
+
+# Environment (API keys live only here; .env.example is committed)
+.env
+.env.*
+!.env.example
+
+# Ingested handbook data (created by `pnpm ingest <path-to-pdf>`)
+/knowledgebase/
+
+# The handbook PDF never lives in the repo; only the small generated test fixture is committed
+*.pdf
+!src/modules/knowledgebase/__tests__/fixtures/*.pdf
+
+# Tool-neutral repo: agent instructions live in AGENTS.md and .agents/ only
+/CLAUDE.md
+.claude/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
