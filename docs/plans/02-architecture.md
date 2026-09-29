@@ -193,7 +193,8 @@ surface/
     index.css
     api/                          Hono app and routes
       __tests__/
-    components/                   shadcn + AI Elements components (CLI-managed)
+    components/                   shadcn + AI Elements components (CLI-managed; primitives in components/ui/)
+    lib/utils.ts                  shadcn cn() helper (CLI-managed)
       __tests__/                  only if we add non-trivial component logic
     modules/
       chat/                       AI SDK: agent, tools, prompt, providers, trimming,

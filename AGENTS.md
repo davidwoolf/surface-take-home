@@ -25,7 +25,7 @@ If a task conflicts with a plan, **stop and ask**. Don't silently deviate. If a 
 - BM25 search, in memory. **No embeddings.**
 
 ## Commands
-Commands are added in M0. Until then, some of these don't exist yet.
+`pnpm ingest` arrives in M1 and `pnpm ask` in M3. Until then, they print a "not implemented" message.
 
 | Command | What it does |
 |---|---|
@@ -41,7 +41,8 @@ Commands are added in M0. Until then, some of these don't exist yet.
 src/
   main.tsx, app.tsx      app entry at the root of src/
   api/                   Hono app and routes. No domain logic here.
-  components/            shadcn + AI Elements components (CLI-managed)
+  components/            shadcn + AI Elements components (CLI-managed; shadcn primitives in components/ui/)
+  lib/utils.ts           shadcn's cn() helper (CLI-managed)
   modules/
     chat/                everything AI SDK: agent, tools, prompt, providers,
                          history trimming, quote verification, error mapping
@@ -57,7 +58,8 @@ docs/plans/              approved plans
 - **Write pure functions where possible.** This covers the ingest stages, normalization, preflight and status, search, trimming, quote parsing, error mapping and provider selection. Scripts and routes stay thin.
 - **Use one text normalization** (`modules/knowledgebase/normalize.ts`) for ingest, search and quote verification. Don't fork it.
 - **Check AI SDK and AI Elements APIs against the installed docs** (`node_modules/ai/docs/`, `node_modules/@ai-sdk/*/docs/`) before using them. The API has changed a lot, so don't write it from memory. Look up model IDs at implementation time; don't hard-code them from memory.
-- **UI is shadcn only.** Add components through the shadcn CLI, and use the shadcn skill in `.agents/skills/`.
+- **UI is shadcn only.** Add components through the shadcn CLI (`pnpm dlx shadcn@latest add <component>`), and use the shadcn skill in `.agents/skills/`. The project uses the `radix-nova` style with Lucide icons (see `components.json`).
+- **Skills** are managed with the `skills` CLI and recorded in `skills-lock.json`. Install them into `.agents/skills/` (for example `npx skills add <source> --agent codex`, which targets `.agents/skills`).
 - Run `pnpm typecheck` and `pnpm test` before every commit.
 
 ## Behavior that must not regress
