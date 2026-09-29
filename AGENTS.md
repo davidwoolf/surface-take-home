@@ -54,9 +54,9 @@ src/
     app.ts                    createApp(deps): /api/health and /api/chat (validation, 503s); no domain logic
     server.ts                 loads .env, the knowledgebase and the provider, then serves the app
     __tests__/                API tests (Hono app.request with a mock model)
-  components/                 CLI-managed; edit only when necessary
-    ui/                       shadcn primitives, including message-scroller.tsx
-    ai-elements/              AI Elements: message (Streamdown), reasoning, tool, prompt-input, shimmer, code-block
+  components/                 CLI-added components, organized by role; edit only when necessary
+    *.tsx                     base components: shadcn primitives (button, card, badge, …) plus shimmer and code-block
+    chat/                     chat-specific: message (Streamdown), prompt-input, reasoning, tool, message-scroller
   lib/utils.ts                shadcn cn() helper (CLI-managed)
   modules/
     chat/                     the chat domain
@@ -79,7 +79,8 @@ src/
 - **Write pure functions where possible:** markdown parsing, chunking, normalization, knowledgebase status, search, history prep, quote parsing and checking, error mapping, provider selection. Scripts and routes stay thin, and `createApp` takes its dependencies as arguments so tests can pass a mock model.
 - **Use one text normalization** (`modules/knowledgebase/normalize.ts`) for search and quote verification. Don't fork it.
 - **Check AI SDK and AI Elements APIs against the installed docs** (`node_modules/ai/docs/`, `node_modules/@ai-sdk/*/docs/`) before using them. The API has changed a lot, so don't write it from memory. Load the `ai-sdk` skill first. Look up model IDs from the providers' current lists, not from memory.
-- **UI comes from shadcn and AI Elements.** Add components with the CLI (`pnpm dlx shadcn@latest add <component>`, or `@ai-elements/<name>`) and follow the shadcn skill's rules in `.agents/skills/shadcn/`. The chat UI itself lives in `modules/chat/ui/`, not `components/`.
+- **UI comes from shadcn and AI Elements.** Add components with the CLI (`pnpm dlx shadcn@latest add <component>`, or `@ai-elements/<name>`) and follow the shadcn skill's rules in `.agents/skills/shadcn/`. The chat UI itself lives in `modules/chat/ui/`.
+- **Components are organized by role**, not by source. Base components go in `components/`, and chat-specific ones in `components/chat/`. shadcn's `ui` alias points at `components/`, so `shadcn add` puts primitives in the right place. AI Elements installs into `components/ai-elements/`, so move a new AI Elements file to `components/` or `components/chat/` and fix its imports (including relative `./` imports of its siblings).
 - **Skills** are managed with the `skills` CLI and recorded in `skills-lock.json`. Install them into `.agents/skills/` with `npx skills add <source> --agent codex` (that agent targets `.agents/skills`).
 - Run `pnpm typecheck` and `pnpm test` before every commit. Changes to search must keep `retrieval.test.ts` passing (top-5 hit rate ≥ 90%).
 

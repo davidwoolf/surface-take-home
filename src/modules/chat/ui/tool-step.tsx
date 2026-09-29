@@ -1,5 +1,5 @@
-import { MessageResponse } from "@/components/ai-elements/message";
-import { Tool, ToolContent, ToolHeader } from "@/components/ai-elements/tool";
+import { MessageResponse } from "@/components/chat/message";
+import { Tool, ToolContent, ToolHeader } from "@/components/chat/tool";
 import type { HandbookUIMessage } from "../message";
 
 type Part = HandbookUIMessage["parts"][number];

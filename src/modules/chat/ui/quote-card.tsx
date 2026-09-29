@@ -1,9 +1,9 @@
 import { BookOpenIcon, CircleAlertIcon, CircleCheckIcon, LinkIcon } from "lucide-react";
-import { MessageResponse } from "@/components/ai-elements/message";
-import { Shimmer } from "@/components/ai-elements/shimmer";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { MessageResponse } from "@/components/chat/message";
+import { Shimmer } from "@/components/shimmer";
+import { Badge } from "@/components/badge";
+import { Card, CardContent, CardFooter } from "@/components/card";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/tooltip";
 import type { QuoteCheck } from "../quotes";
 
 /** Where a quote's check stands: in progress, done, or not done because the answer stopped or failed. */

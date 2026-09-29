@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Spinner } from "@/components/ui/spinner";
+import { Badge } from "@/components/badge";
+import { Spinner } from "@/components/spinner";
 
 export type TurnState = "running" | "done" | "stopped" | "failed";
 

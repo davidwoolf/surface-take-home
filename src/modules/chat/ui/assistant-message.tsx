@@ -1,6 +1,6 @@
 import { Fragment } from "react";
-import { Message, MessageContent, MessageResponse } from "@/components/ai-elements/message";
-import { Reasoning, ReasoningContent, ReasoningTrigger } from "@/components/ai-elements/reasoning";
+import { Message, MessageContent, MessageResponse } from "@/components/chat/message";
+import { Reasoning, ReasoningContent, ReasoningTrigger } from "@/components/chat/reasoning";
 import type { HandbookUIMessage } from "../message";
 import { splitAnswer } from "../quote-format";
 import { QuoteCard, type QuoteStatus } from "./quote-card";

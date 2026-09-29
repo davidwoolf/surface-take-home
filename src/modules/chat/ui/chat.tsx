@@ -2,7 +2,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { BookOpenIcon, RotateCcwIcon, SquarePenIcon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { Message, MessageContent, MessageResponse } from "@/components/ai-elements/message";
+import { Message, MessageContent, MessageResponse } from "@/components/chat/message";
 import {
   PromptInput,
   PromptInputBody,
@@ -11,11 +11,11 @@ import {
   PromptInputTextarea,
   PromptInputTools,
   type PromptInputMessage,
-} from "@/components/ai-elements/prompt-input";
-import { Shimmer } from "@/components/ai-elements/shimmer";
-import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+} from "@/components/chat/prompt-input";
+import { Shimmer } from "@/components/shimmer";
+import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/alert";
+import { Button } from "@/components/button";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/empty";
 import {
   MessageScroller,
   MessageScrollerButton,
@@ -23,8 +23,8 @@ import {
   MessageScrollerItem,
   MessageScrollerProvider,
   MessageScrollerViewport,
-} from "@/components/ui/message-scroller";
-import { Spinner } from "@/components/ui/spinner";
+} from "@/components/chat/message-scroller";
+import { Spinner } from "@/components/spinner";
 import { type HandbookUIMessage, dataPartSchemas, messageMetadataSchema } from "../message";
 import { AssistantMessage } from "./assistant-message";
 import { describeChatError } from "./chat-errors";

@@ -1,4 +1,4 @@
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/tooltip";
 import { Chat } from "@/modules/chat/ui/chat";
 
 export function App() {
