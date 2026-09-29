@@ -12,7 +12,7 @@
 
 ### M0 — Scaffold ✅ (`9688745`)
 - `pnpm init`, TypeScript (strict), Vite + React (`src/main.tsx`, `src/app.tsx`), and a Hono app in `src/api/`.
-- Folders created as in the [repo layout](02-architecture.md#repo-layout): `src/components/`, `src/modules/chat/`, `src/modules/knowledgebase/`, `knowledgebase/`.
+- Folders created as in the [repo layout](../../AGENTS.md#repo-layout): `src/components/`, `src/modules/chat/`, `src/modules/knowledgebase/`, `knowledgebase/`.
 - `shadcn init` for Vite, with components going to `src/components/`. Install the shadcn skill into `.agents/skills/`.
 - Vitest set up for `__tests__/` folders (see [Testing strategy](#testing-strategy)).
 - Scripts: `dev`, `ask`, `test`, `test:watch`, `typecheck`.

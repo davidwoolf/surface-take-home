@@ -11,7 +11,7 @@ The plans in `docs/plans/` record what we build and why, including decisions tha
 | Plan | Covers |
 |---|---|
 | [`01-purpose.md`](docs/plans/01-purpose.md) | What the app does, the answering rules, non-goals |
-| [`02-architecture.md`](docs/plans/02-architecture.md) | Stack, components, error handling, stopping, repo layout |
+| [`02-architecture.md`](docs/plans/02-architecture.md) | Stack, components, error handling, stopping |
 | [`03-implementation.md`](docs/plans/03-implementation.md) | Milestones (M0–M6) with notes from the build, testing strategy, risks |
 
 If a task conflicts with a plan, **stop and ask**. Don't silently deviate. If a plan changes, update the plan document in the same commit.
