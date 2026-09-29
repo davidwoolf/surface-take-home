@@ -1,0 +1,6 @@
+export { InputGroupAddon } from "./addon"
+export { InputGroupButton } from "./button"
+export { InputGroupInput } from "./input"
+export { InputGroup } from "./input-group"
+export { InputGroupText } from "./text"
+export { InputGroupTextarea } from "./textarea"

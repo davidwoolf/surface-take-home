@@ -1,5 +1,3 @@
-"use client";
-
 import { cn } from "@/lib/utils";
 import type { MotionProps } from "motion/react";
 import { motion } from "motion/react";
@@ -31,13 +29,14 @@ export interface TextShimmerProps {
   spread?: number;
 }
 
-const ShimmerComponent = ({
+/** Text with a moving highlight, for "working on it" states. */
+export const Shimmer = memo(function Shimmer({
   children,
   as: Component = "p",
   className,
   duration = 2,
   spread = 2,
-}: TextShimmerProps) => {
+}: TextShimmerProps) {
   const MotionComponent = getMotionComponent(
     Component as keyof JSX.IntrinsicElements
   );
@@ -72,6 +71,4 @@ const ShimmerComponent = ({
       {children}
     </MotionComponent>
   );
-};
-
-export const Shimmer = memo(ShimmerComponent);
+});

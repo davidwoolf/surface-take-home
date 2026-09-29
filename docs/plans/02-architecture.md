@@ -109,7 +109,7 @@ The preflight and selection logic are pure functions inside the modules, so they
 - Large tool results from earlier turns are trimmed before they're sent to the model.
 
 ### 7. Frontend
-- `src/main.tsx` and `src/app.tsx` sit at the root of `src/`. Components from shadcn and AI Elements go in `src/components/` (CLI-managed). The chat UI built from them lives in `src/modules/chat/ui/`, next to the rest of the chat domain. Quote parsing (`quote-format.ts`) is shared by the server's verifier and the client's quote cards.
+- `src/main.tsx` and `src/app.tsx` sit at the root of `src/`. All components live in `src/components/`, one component per file and organized by role: base components at the root, chat-specific ones (including our chat screen, quote cards and tool steps) in `components/chat/`. Hooks are in `src/hooks/`. Quote parsing (`modules/chat/quote-format.ts`) is shared by the server's verifier and the client's quote cards.
 - **Layout:** a single-page chat with a message list, a prompt input (Send and Stop) and a "New chat" button.
 - **Activity display** for each response: an elapsed-time counter, a collapsible reasoning panel, and tool-call chips (for example "Searched: *parental leave*" and "Read: *Benefits › Leave*").
 - **Quote cards** show the verbatim quote, its source (for example "People › Offboarding › Voluntary departure"), any handbook links and the verification state.

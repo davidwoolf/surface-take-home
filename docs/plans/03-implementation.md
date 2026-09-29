@@ -89,7 +89,7 @@ Notes from the build:
 **Done when:** the unit and API tests cover exact, near and fabricated quotes, and the skip-on-abort behavior.
 
 ### M5 — Chat UI ✅
-Built in `src/modules/chat/ui/`, with AI Elements and shadcn primitives in `src/components/`:
+Built from AI Elements and shadcn primitives (after M5, reorganized so all components live in `src/components/`, one per file, by role; see `AGENTS.md`):
 - **Scrolling:** shadcn's `MessageScroller` handles the conversation's scrolling: it follows streamed answers (`autoScroll`), anchors each user question near the top, and has a jump-to-latest button. It replaced the AI Elements `Conversation` component, which didn't reliably follow new answers.
 - **Answers:** tool steps ("Searched: …", "Read: <source>"), reasoning, streaming markdown (Streamdown), and quote cards showing the source, a Verified / Not found / Checking / Not checked badge, and handbook links.
 - **Timer:** a per-turn timer that freezes on Stopped or Failed.
