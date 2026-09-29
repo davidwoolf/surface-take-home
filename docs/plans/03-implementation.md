@@ -90,6 +90,7 @@ Notes from the build:
 
 ### M5 — Chat UI ✅
 Built in `src/modules/chat/ui/`, with AI Elements and shadcn primitives in `src/components/`:
+- **Scrolling:** shadcn's `MessageScroller` handles the conversation's scrolling: it follows streamed answers (`autoScroll`), anchors each user question near the top, and has a jump-to-latest button. It replaced the AI Elements `Conversation` component, which didn't reliably follow new answers.
 - **Answers:** tool steps ("Searched: …", "Read: <source>"), reasoning, streaming markdown (Streamdown), and quote cards showing the source, a Verified / Not found / Checking / Not checked badge, and handbook links.
 - **Timer:** a per-turn timer that freezes on Stopped or Failed.
 - **Stopping:** the Send button becomes Stop while busy, and Escape stops too.

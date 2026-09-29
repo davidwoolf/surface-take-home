@@ -2,7 +2,6 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { BookOpenIcon, RotateCcwIcon, SquarePenIcon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ai-elements/conversation";
 import { Message, MessageContent, MessageResponse } from "@/components/ai-elements/message";
 import {
   PromptInput,
@@ -17,6 +16,14 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import {
+  MessageScroller,
+  MessageScrollerButton,
+  MessageScrollerContent,
+  MessageScrollerItem,
+  MessageScrollerProvider,
+  MessageScrollerViewport,
+} from "@/components/ui/message-scroller";
 import { Spinner } from "@/components/ui/spinner";
 import { type HandbookUIMessage, dataPartSchemas, messageMetadataSchema } from "../message";
 import { AssistantMessage } from "./assistant-message";
@@ -96,84 +103,97 @@ export function Chat() {
   const waitingForAnswer = busy && last?.role === "user";
 
   return (
-    <div className="flex h-full flex-col">
-      <header className="flex items-center justify-between gap-4 border-b px-4 py-3">
-        <div className="flex items-center gap-2">
-          <BookOpenIcon aria-hidden />
-          <h1 className="font-heading font-semibold">Surface</h1>
-          <span className="text-muted-foreground text-sm">PostHog handbook</span>
-        </div>
-        <Button variant="ghost" size="sm" onClick={newChat} disabled={messages.length === 0 && !error}>
-          <SquarePenIcon data-icon="inline-start" />
-          New chat
-        </Button>
-      </header>
+    <MessageScrollerProvider autoScroll>
+      <div className="flex h-full flex-col">
+        <header className="flex items-center justify-between gap-4 border-b px-4 py-3">
+          <div className="flex items-center gap-2">
+            <BookOpenIcon aria-hidden />
+            <h1 className="font-heading font-semibold">Surface</h1>
+            <span className="text-muted-foreground text-sm">PostHog handbook</span>
+          </div>
+          <Button variant="ghost" size="sm" onClick={newChat} disabled={messages.length === 0 && !error}>
+            <SquarePenIcon data-icon="inline-start" />
+            New chat
+          </Button>
+        </header>
 
-      <Conversation className="flex-1">
-        <ConversationContent className="mx-auto w-full max-w-3xl">
-          {messages.length === 0 ? (
+        {messages.length === 0 ? (
+          <div className="flex-1 overflow-y-auto">
             <EmptyConversation onAsk={send} />
-          ) : (
-            messages.map((message, index) =>
-              message.role === "user" ? (
-                <Message key={message.id} from="user">
-                  <MessageContent>
-                    {message.parts.map((part, i) => (part.type === "text" ? <MessageResponse key={i}>{part.text}</MessageResponse> : null))}
-                  </MessageContent>
-                </Message>
-              ) : (
-                <AssistantMessage
-                  key={message.id}
-                  message={message}
-                  state={turnState(message, index === messages.length - 1, status, ended)}
-                  fallbackStart={index === messages.length - 1 ? sentAt : undefined}
-                  endedAt={ended[message.id]?.at}
-                />
-              ),
-            )
-          )}
+          </div>
+        ) : (
+          <MessageScroller className="flex-1">
+            <MessageScrollerViewport>
+              <MessageScrollerContent aria-busy={busy} className="mx-auto w-full max-w-3xl p-4">
+                {messages.map((message, index) => (
+                  <MessageScrollerItem key={message.id} messageId={message.id} scrollAnchor={message.role === "user"}>
+                    {message.role === "user" ? (
+                      <Message from="user">
+                        <MessageContent>
+                          {message.parts.map((part, i) =>
+                            part.type === "text" ? <MessageResponse key={i}>{part.text}</MessageResponse> : null,
+                          )}
+                        </MessageContent>
+                      </Message>
+                    ) : (
+                      <AssistantMessage
+                        message={message}
+                        state={turnState(message, index === messages.length - 1, status, ended)}
+                        fallbackStart={index === messages.length - 1 ? sentAt : undefined}
+                        endedAt={ended[message.id]?.at}
+                      />
+                    )}
+                  </MessageScrollerItem>
+                ))}
 
-          {waitingForAnswer && (
-            <Message from="assistant">
-              <MessageContent className="gap-3">
-                <Shimmer>Searching the handbook…</Shimmer>
-                <TurnTimer start={sentAt} end={undefined} state="running" />
-              </MessageContent>
-            </Message>
-          )}
+                {waitingForAnswer && (
+                  <MessageScrollerItem>
+                    <Message from="assistant">
+                      <MessageContent className="gap-3">
+                        <Shimmer>Searching the handbook…</Shimmer>
+                        <TurnTimer start={sentAt} end={undefined} state="running" />
+                      </MessageContent>
+                    </Message>
+                  </MessageScrollerItem>
+                )}
 
-          {errorView?.kind === "turn" && (
-            <Alert variant="destructive">
-              <AlertTitle>The answer failed</AlertTitle>
-              <AlertDescription>{errorView.message}</AlertDescription>
-              <AlertAction>
-                <Button variant="outline" size="sm" onClick={retry}>
-                  <RotateCcwIcon data-icon="inline-start" />
-                  Retry
-                </Button>
-              </AlertAction>
-            </Alert>
-          )}
-        </ConversationContent>
-        <ConversationScrollButton />
-      </Conversation>
+                {errorView?.kind === "turn" && (
+                  <MessageScrollerItem>
+                    <Alert variant="destructive">
+                      <AlertTitle>The answer failed</AlertTitle>
+                      <AlertDescription>{errorView.message}</AlertDescription>
+                      <AlertAction>
+                        <Button variant="outline" size="sm" onClick={retry}>
+                          <RotateCcwIcon data-icon="inline-start" />
+                          Retry
+                        </Button>
+                      </AlertAction>
+                    </Alert>
+                  </MessageScrollerItem>
+                )}
+              </MessageScrollerContent>
+            </MessageScrollerViewport>
+            <MessageScrollerButton />
+          </MessageScroller>
+        )}
 
-      <div className="mx-auto w-full max-w-3xl px-4 pb-4">
-        <PromptInput onSubmit={(message: PromptInputMessage) => send(message.text)}>
-          <PromptInputBody>
-            <PromptInputTextarea placeholder="Ask about the PostHog handbook…" />
-          </PromptInputBody>
-          <PromptInputFooter>
-            <PromptInputTools>
-              <span className="px-2 text-muted-foreground text-xs">
-                {busy ? "Press Esc to stop" : `${health.provider.model}`}
-              </span>
-            </PromptInputTools>
-            <PromptInputSubmit status={status} onStop={stopResponse} />
-          </PromptInputFooter>
-        </PromptInput>
+        <div className="mx-auto w-full max-w-3xl px-4 pb-4">
+          <PromptInput onSubmit={(message: PromptInputMessage) => send(message.text)}>
+            <PromptInputBody>
+              <PromptInputTextarea placeholder="Ask about the PostHog handbook…" />
+            </PromptInputBody>
+            <PromptInputFooter>
+              <PromptInputTools>
+                <span className="px-2 text-muted-foreground text-xs">
+                  {busy ? "Press Esc to stop" : `${health.provider.model}`}
+                </span>
+              </PromptInputTools>
+              <PromptInputSubmit status={status} onStop={stopResponse} />
+            </PromptInputFooter>
+          </PromptInput>
+        </div>
       </div>
-    </div>
+    </MessageScrollerProvider>
   );
 }
 
