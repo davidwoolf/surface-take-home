@@ -2,6 +2,28 @@
 
 A local chat app that answers questions about the [PostHog handbook](https://posthog.com/handbook). Answers stream in as they're written, quote the handbook word for word, and name where each quote comes from, such as *People › Offboarding › Voluntary departure*.
 
+## Assumptions made
+
+- Knowledge base users have access to the handbook somewhere else (either as a website or PDF)
+- Packaging the knowledge base into the repository is intentional due to idiosyncrasies with parsing PDF content reliably 
+- Users understand the technical aspects of the responses (aka: tool calls, reasoning, etc) due to who will be reviewing the project
+- Project setup can be used with Claude, ChatGPT, or Gemini. Testing was done with Claude Sonnet 5.5
+- ShadCN and Vercel Components were used for the UI to create a proof of concept. More time was spent on architecting how the knowledge base will be stored, retrieved, and verified.
+
+## Technology used
+
+| Area | Technology |
+|---|---|
+| Language and tooling | [TypeScript](https://www.typescriptlang.org), [pnpm](https://pnpm.io), [tsx](https://tsx.is) for scripts |
+| Web app | [React](https://react.dev) and [Vite](https://vite.dev) |
+| API server | [Hono](https://hono.dev) on Node.js |
+| AI | [Vercel AI SDK](https://ai-sdk.dev): the `ToolLoopAgent` agent, `useChat` streaming, and the Anthropic, OpenAI and Google provider packages |
+| UI components | [shadcn/ui](https://ui.shadcn.com) with [Tailwind CSS](https://tailwindcss.com), including its `MessageScroller`; [AI Elements](https://ai-sdk.dev/elements) for messages, reasoning, tool steps and the prompt input, with [Streamdown](https://streamdown.ai) for streaming markdown |
+| Search | [MiniSearch](https://lucaong.github.io/minisearch/) (BM25 keyword search, in memory) and [stemmer](https://github.com/words/stemmer) |
+| Validation | [Zod](https://zod.dev) |
+| Tests | [Vitest](https://vitest.dev), with the AI SDK's mock model for API tests |
+| Handbook conversion | [pdf.js](https://mozilla.github.io/pdf.js/), used once to convert the handbook PDF to markdown; it isn't part of the app |
+
 ## Requirements
 
 Install these before you start.
