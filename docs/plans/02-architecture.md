@@ -9,8 +9,7 @@
 | Stack | pnpm, TypeScript, **Vite + React** (client), **Hono** (server), [Vercel AI SDK](https://ai-sdk.dev/) |
 | UI | **shadcn/ui only**, plus the AI SDK chat components (AI Elements), which install through the shadcn registry. The [shadcn skill](https://ui.shadcn.com/docs/skills) is installed. No other UI kits. |
 | Providers | Claude, ChatGPT and Gemini through the direct AI SDK provider packages. Keys go in `.env`, never in code. With more than one key set, `pnpm dev` asks which provider to use. |
-| Handbook | A 1,076-page, 50 MB PDF that is mostly text, with images, headings and links. The PDF **stays outside the repo**. Users run `pnpm ingest <path-to-pdf>`, and the gitignored output lands in `knowledgebase/`. Swapping the source material is just a re-run. |
-| Ingest | **Front-loaded.** We prove extraction quality before building the chat. Images are out of scope; the focus is accurate text. |
+| Handbook | The PostHog handbook (a 1,076-page PDF) was **converted once to markdown** and is **committed in `knowledgebase/`**, one file per handbook page. The app is built for this handbook: there's no PDF ingest step, and the PDF never enters the repo. Images are out of scope; the focus is accurate text. |
 | Search | Agentic search over **BM25** (in memory). No embeddings. |
 | Quote verification | Checked **after the answer is written**. We'll revisit if answers turn out wrong. |
 | Errors | A missing knowledgebase blocks startup with clear instructions. A message failure is shown inline in the conversation turn, with Retry. See [Error handling](#error-handling). |
@@ -23,10 +22,9 @@
 ## System overview
 
 ```
-                   ┌──────── pnpm ingest <path-to-pdf> (one-time) ─────────┐
- any/path/to.pdf ─▶│ extract → structure → chunk → index → report          │─▶ knowledgebase/
-                   └───────────────────────────────────────────────────────┘        │
-                                                                                     ▼
+                                                     knowledgebase/*.md (committed)
+                                                                  │ parsed at startup
+                                                                  ▼
 ┌─────────── browser (Vite) ────────────┐                     ┌──────── Hono (src/api) ────────┐
 │ src/app.tsx + src/components          │  POST /api/chat     │ src/modules/chat               │
 │ useChat — messages in memory only     │ ──────────────────▶ │  ToolLoopAgent + tools         │
@@ -40,49 +38,34 @@ In dev, Vite serves the client and proxies `/api` to the Hono server. One `pnpm 
 
 ## Components
 
-### 1. Ingestion pipeline (`pnpm ingest`) — built first
-Code lives in `src/modules/knowledgebase/ingest/`, and `scripts/ingest.ts` is a thin entry point.
+### 1. The knowledgebase (`knowledgebase/`)
+The handbook as markdown, one file per handbook page, in folders that mirror the handbook's own source paths (for example `knowledgebase/people/time-off.md`). It's 254 files, about 2.4 MB.
 
-**Input:** a path to the PDF, passed as an argument (`pnpm ingest ~/Downloads/handbook.pdf`). The PDF is never copied into the repo.
-- If there's no argument, or the path is missing, unreadable or not a PDF, ingest exits (code 1) with usage instructions.
-- Ingest writes to a temporary folder and swaps it in only when everything has succeeded, so a failed run never leaves the knowledgebase half-written.
+Each file has:
+- frontmatter with `title` and `source` (the handbook's own source path, e.g. `contents/handbook/people/time-off.md`)
+- a `# Title` line, then the body, with `##`–`######` headings, paragraphs, lists, tables and fenced code
+- the handbook's links inline, as `[text](url)`
 
-**Output:** `knowledgebase/`:
-- `manifest.json`: schema version, the source file name and SHA-256 (for information), page count, the ingest time, and counts
-- `sections.json`: the heading tree, and for each section its text, page range and links
-- `chunks.json`: the searchable units, each with a heading path and page
-- `index.json`: the serialized BM25 index
-- `report.md`: the quality report
+**How it was made:** a one-off conversion of the PDF with pdf.js, kept out of the app.
+- Headings were rebuilt from font sizes (22 / 15 / 12.5 / 11pt → levels 1–4).
+- Running headers and footers were stripped.
+- Wrapped lines were joined into paragraphs, and table rows and columns were rebuilt.
+- Links were placed on the text they cover.
 
-All of `knowledgebase/` is gitignored and created by `pnpm ingest`. How to run ingest is documented in the root `README.md`.
-
-**Stages:**
-1. **Extract** the text runs with their font size, weight and position; the PDF outline (bookmarks); and the **link annotations** with their target URLs and where they sit on the page. The likely library is `pdfjs-dist`, confirmed in the extraction spike.
-2. **Structure:**
-   - Rebuild the heading hierarchy, using the outline first and font size and weight as the fallback.
-   - Join lines into paragraphs.
-   - Strip running headers, footers and page numbers.
-   - Attach each link to the text it sits on.
-3. **Images:** ignored for answers. Ingest only counts them in the report.
-4. **Chunk:** split by section. Long sections are split on paragraph boundaries, with a small overlap. Every chunk keeps its heading path, for example "Benefits › Leave › Parental".
-5. **Report:**
-   - pages with little extracted text
-   - how deep the headings go, with a sample
-   - links found and links that couldn't be tied to text
-   - the leftover header and footer noise
-   - the chunk size distribution
-
-The same text normalization (`src/modules/knowledgebase/normalize.ts`) is used by ingest, search and quote verification.
+**Known gaps in the source:** some inline content on the website (mostly people's and teams' names) didn't print to the PDF, so about 40 lines read like "handled by , , and on the team". Content inside images isn't included. Answers that depend on these gaps can't be completed from the handbook.
 
 ### 2. Knowledgebase loading & search (`src/modules/knowledgebase`)
-- `loadKnowledgebase()` reads and validates `knowledgebase/` and returns a typed status: `ready`, `missing` or `invalid` (see [Error handling](#error-handling)).
-- BM25 search held in memory (for example MiniSearch), with the heading path indexed as a boosted field.
+- `loadKnowledgebase()` reads every markdown file when the server starts (about 0.3s) and splits each file into sections at its headings.
+- It splits sections into chunks on block boundaries, with a small overlap, and builds the search index. Each chunk keeps its heading path, for example "Time off › Parental leave".
+- It returns a typed status, `ready` or `invalid` (see [Error handling](#error-handling)).
+- BM25 search is held in memory (MiniSearch). The heading path is indexed as a boostable field, and links are reduced to their text for indexing.
+- The shared text normalization (`normalize.ts`) is used for search and quote verification.
 
 ### 3. Chat module (`src/modules/chat`)
 Everything that uses the AI SDK lives together here: the agent, tools, prompt, provider factory, history trimming, quote verification, error mapping and shared message types.
 - An AI SDK `ToolLoopAgent` with a system prompt that enforces the [answering rules](01-purpose.md#answering-rules).
 - **Tools** (each call streams to the UI as visible activity):
-  - `search_handbook(query)` returns the top hits: chunk id, heading path, pages and snippet.
+  - `search_handbook(query)` returns the top hits: chunk id, heading path and snippet.
   - `read_section(id)` returns the full section text and its links.
 - **Reasoning** uses the AI SDK's portable `reasoning` setting. A **step limit** stops the tool loop from running away.
 - **Answer format:** markdown. Quotes use a structured, parseable form that includes the source chunk id.
@@ -111,7 +94,7 @@ The preflight and selection logic are pure functions inside the modules, so they
 - `src/main.tsx` and `src/app.tsx` sit at the root of `src/`. Components from shadcn and AI Elements go in `src/components/`.
 - **Layout:** a single-page chat with a message list, a prompt input (Send and Stop) and a "New chat" button.
 - **Activity display** for each response: an elapsed-time counter, a collapsible reasoning panel, and tool-call chips (for example "Searched: *parental leave*" and "Read: *Benefits › Leave*").
-- **Quote cards** show the verbatim quote, heading path, page, any handbook links and the verification state.
+- **Quote cards** show the verbatim quote, heading path, any handbook links and the verification state.
 - Streaming markdown, reasoning and tool displays come from AI Elements.
 
 ### 8. Agent-harness files
@@ -120,21 +103,18 @@ The preflight and selection logic are pure functions inside the modules, so they
 
 ## Error handling
 
-### A. Knowledgebase not found (`pnpm dev`)
-The app can't answer anything without the handbook, so this is checked **before** the provider prompt and before any server starts. The checks run in this order:
+### A. Knowledgebase can't be loaded (`pnpm dev`)
+The handbook is committed, so this only happens if `knowledgebase/` has been deleted or a file has been broken by an edit. The app can't answer anything without it, so this is checked **before** the provider prompt and before any server starts.
 
 | State | Detected by | Behavior |
 |---|---|---|
-| **Missing** | no `knowledgebase/manifest.json` | **Exit (code 1)**: "No handbook has been ingested. Run `pnpm ingest <path-to-pdf>`." |
-| **Invalid** | missing files, JSON that won't parse, or a schema version mismatch (for example, after an upgrade that changed the format) | **Exit (code 1)**: say what's wrong and tell the user to re-run `pnpm ingest <path-to-pdf>`. |
-| **Ready** | the manifest and all its files are present and valid | **Continue** to the provider prompt. |
+| **Invalid** | no markdown files in `knowledgebase/`, or a file without valid frontmatter (`title` and `source`) | **Exit (code 1)**: say what's wrong, and that `git checkout -- knowledgebase` restores it. |
+| **Ready** | every file parses | **Continue** to the provider prompt. |
 
-Nothing checks whether the PDF has changed since it was ingested. Re-ingesting after a handbook update is up to the user.
-
-**Runtime backstop:** the server also calls `loadKnowledgebase()` when it starts, which covers the Hono server being started on its own or the data being deleted while it runs. If the status isn't `ready`:
+**Runtime backstop:** the server also calls `loadKnowledgebase()` when it starts, which covers the Hono server being started on its own. If the status isn't `ready`:
 - `/api/health` reports it.
 - `/api/chat` returns **503** with `{ code: "KNOWLEDGEBASE_UNAVAILABLE", message }`.
-- The UI shows a blocking empty state with the same instructions in place of the prompt input.
+- The UI shows a blocking empty state with the same message in place of the prompt input.
 
 Messages are written once in `modules/knowledgebase` and shared by the CLI, the API and the UI.
 
@@ -180,13 +160,13 @@ This matches how other chat products behave.
 surface/
   AGENTS.md
   .agents/skills/                 shadcn skill + project skills
-  README.md                       setup: pnpm install → .env → pnpm ingest <pdf> → pnpm dev
+  README.md                       setup: pnpm install → .env → pnpm dev
   .env.example
-  knowledgebase/                  pnpm ingest output (gitignored, created by ingest)
-    manifest.json, sections.json, chunks.json, index.json, report.md
+  knowledgebase/                  the handbook as markdown, one file per page (committed)
+    people/time-off.md, brand/startups.md, …
   scripts/
     dev.ts                        preflight → provider prompt → start Vite + Hono
-    ingest.ts                     parse <path-to-pdf> → modules/knowledgebase/ingest
+    ask.ts                        headless question → agent (M3)
   src/
     main.tsx
     app.tsx
@@ -194,14 +174,12 @@ surface/
     api/                          Hono app and routes
       __tests__/
     components/                   shadcn + AI Elements components (CLI-managed; primitives in components/ui/)
-    lib/utils.ts                  shadcn cn() helper (CLI-managed)
       __tests__/                  only if we add non-trivial component logic
+    lib/utils.ts                  shadcn cn() helper (CLI-managed)
     modules/
       chat/                       AI SDK: agent, tools, prompt, providers, trimming,
         __tests__/                  quote verification, error mapping, message types
-      knowledgebase/              ingest pipeline, normalization, loader/status, BM25 search
-        ingest/
+      knowledgebase/              markdown parsing, chunking, normalization, loader, BM25 search
         __tests__/
-          fixtures/               small generated fixture PDF + expected output
   docs/plans/
 ```

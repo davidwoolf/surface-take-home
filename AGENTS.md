@@ -3,7 +3,7 @@
 Guidance for coding agents (and humans) working in this repo.
 
 ## What this is
-**Surface** is a local chat app that answers questions about a large handbook PDF. Answers are streamed, grounded in the handbook, and cite **verbatim quotes** plus any links the handbook provides. Conversations live in memory only; every session starts fresh.
+**Surface** is a local chat app that answers questions about a handbook (the PostHog handbook, converted from PDF to markdown in `knowledgebase/`). Answers are streamed, grounded in the handbook, and cite **verbatim quotes** plus any links the handbook provides. Conversations live in memory only; every session starts fresh.
 
 ## Source of truth
 The approved plans in `docs/plans/` define what we build. Read the relevant plan before starting work, and don't drift from it.
@@ -25,15 +25,13 @@ If a task conflicts with a plan, **stop and ask**. Don't silently deviate. If a 
 - BM25 search, in memory. **No embeddings.**
 
 ## Commands
-`pnpm ingest` arrives in M1 and `pnpm ask` in M3. Until then, they print a "not implemented" message.
+`pnpm ask` arrives in M3. Until then, it prints a "not implemented" message.
 
 | Command | What it does |
 |---|---|
-| `pnpm dev` | Checks the knowledgebase, asks which provider to use (when more than one key is set), then starts Vite and Hono |
-| `pnpm ingest <path-to-pdf>` | Builds `knowledgebase/` from the handbook PDF |
+| `pnpm dev` | Checks the knowledgebase loads, asks which provider to use (when more than one key is set), then starts Vite and Hono |
 | `pnpm ask "<question>"` | Runs the agent headless (for manual checks) |
-| `pnpm test` | Unit and API tests. No network, keys or handbook needed |
-| `pnpm test:handbook` | Opt-in checks against the real ingested handbook |
+| `pnpm test` | Unit and API tests. No network or keys needed |
 | `pnpm typecheck` | TypeScript check |
 
 ## Repo layout
@@ -46,17 +44,17 @@ src/
   modules/
     chat/                everything AI SDK: agent, tools, prompt, providers,
                          history trimming, quote verification, error mapping
-    knowledgebase/       ingest pipeline, normalization, loader/status, BM25 search
-scripts/                 thin entry points: dev.ts, ingest.ts
-knowledgebase/           ingest output (gitignored)
+    knowledgebase/       markdown parsing, chunking, normalization, loader, BM25 search
+scripts/                 thin entry points: dev.ts, ask.ts
+knowledgebase/           the handbook as markdown, one file per handbook page (committed)
 docs/plans/              approved plans
 ```
 
 ## Conventions
 - **File names are always kebab-case**, including React components (`chat-message.tsx`, `app.tsx`) and tests. Component identifiers stay PascalCase in code.
-- **Tests go in `__tests__/` folders** next to the domain they cover, named `*.test.ts(x)`. Real-handbook checks go in `src/modules/knowledgebase/__tests__/handbook/`.
-- **Write pure functions where possible.** This covers the ingest stages, normalization, preflight and status, search, trimming, quote parsing, error mapping and provider selection. Scripts and routes stay thin.
-- **Use one text normalization** (`modules/knowledgebase/normalize.ts`) for ingest, search and quote verification. Don't fork it.
+- **Tests go in `__tests__/` folders** next to the domain they cover, named `*.test.ts(x)`. Tests may read the committed `knowledgebase/`.
+- **Write pure functions where possible.** This covers markdown parsing, chunking, normalization, preflight and status, search, trimming, quote parsing, error mapping and provider selection. Scripts and routes stay thin.
+- **Use one text normalization** (`modules/knowledgebase/normalize.ts`) for search and quote verification. Don't fork it.
 - **Check AI SDK and AI Elements APIs against the installed docs** (`node_modules/ai/docs/`, `node_modules/@ai-sdk/*/docs/`) before using them. The API has changed a lot, so don't write it from memory. Look up model IDs at implementation time; don't hard-code them from memory.
 - **UI is shadcn only.** Add components through the shadcn CLI (`pnpm dlx shadcn@latest add <component>`), and use the shadcn skill in `.agents/skills/`. The project uses the `radix-nova` style with Lucide icons (see `components.json`).
 - **Skills** are managed with the `skills` CLI and recorded in `skills-lock.json`. Install them into `.agents/skills/` (for example `npx skills add <source> --agent codex`, which targets `.agents/skills`).
@@ -67,14 +65,14 @@ docs/plans/              approved plans
   - Handbook answers include verbatim quotes.
   - If the handbook doesn't cover a question, say so; **never** fill the gap with general knowledge.
   - Off-topic questions may get a general-knowledge answer.
-- **A missing knowledgebase blocks startup.** `pnpm dev` exits with instructions, and `/api/chat` returns 503 `KNOWLEDGEBASE_UNAVAILABLE`.
+- **A knowledgebase that fails to load blocks startup.** `pnpm dev` exits with the problem, and `/api/chat` returns 503 `KNOWLEDGEBASE_UNAVAILABLE`.
 - **Message failures appear inline in the failed turn**, with Retry. Only safe, mapped messages reach the client. Keys and raw provider errors never do.
 - **Stop:** the Stop button and **Escape** abort the response all the way to the provider. The partial answer is kept and marked "Stopped".
 - Nothing about a conversation is stored on the server or on disk.
 
 ## Guardrails
 - **Secrets** are only in `.env` (see `.env.example`). Never put keys in code, tests, logs or commits.
-- **Never commit the handbook** or `knowledgebase/`. The only PDF allowed in git is the small generated test fixture.
+- **`knowledgebase/` is source content.** Each file has `title` and `source` frontmatter, a `# Title` line, and `##`–`######` headings that become sections. Edit it like any other content; don't reintroduce a PDF ingest step. Never commit the PDF itself.
 - **Agent instructions** live only in `AGENTS.md` and `.agents/`. Don't add `CLAUDE.md`, `.claude/` or other tool-specific files.
 - **Tests** never call real providers or the network. Use the AI SDK's mock model from `ai/test`.
 

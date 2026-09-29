@@ -49,4 +49,4 @@ The handbook is a large PDF, and it's hard to find a specific answer in it. Surf
 - Streamed markdown never shows broken or flickering formatting.
 
 ## Resolved in architecture
-See [02-architecture](02-architecture.md): PDF ingest and search, local-only access, and quote verification.
+See [02-architecture](02-architecture.md): the knowledgebase (the handbook as committed markdown) and search, local-only access, and quote verification.

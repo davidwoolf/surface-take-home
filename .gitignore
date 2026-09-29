@@ -17,12 +17,8 @@ coverage/
 .env.*
 !.env.example
 
-# Ingested handbook data (created by `pnpm ingest <path-to-pdf>`)
-/knowledgebase/
-
-# The handbook PDF never lives in the repo; only the small generated test fixture is committed
+# The handbook PDF never lives in the repo; its markdown conversion in knowledgebase/ does
 *.pdf
-!src/modules/knowledgebase/__tests__/fixtures/*.pdf
 
 # Tool-neutral repo: agent instructions live in AGENTS.md and .agents/ only
 /CLAUDE.md
