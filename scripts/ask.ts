@@ -1,3 +1,64 @@
-// Implemented in M3: `pnpm ask "<question>"` runs the agent headless.
-console.error("pnpm ask is not implemented yet (milestone M3).");
-process.exit(1);
+import { createHandbookAgent } from "../src/modules/chat/agent";
+import { toChatError } from "../src/modules/chat/errors";
+import { PROVIDERS } from "../src/modules/chat/providers";
+import { chooseProvider, fail, loadEnv, requireKnowledgebase } from "./lib/setup";
+
+// Runs the agent headless for one question: `pnpm ask "How long is parental leave?"`.
+
+const question = process.argv.slice(2).join(" ").trim();
+if (!question) fail('Usage: pnpm ask "<question>"');
+
+loadEnv();
+const knowledgebase = requireKnowledgebase();
+const { provider, modelId } = await chooseProvider();
+const { create, providerOptions } = PROVIDERS[provider];
+const agent = createHandbookAgent({ model: create(modelId), knowledgebase, providerOptions });
+
+const dim = (text: string) => `\x1b[2m${text}\x1b[0m`;
+const controller = new AbortController();
+process.on("SIGINT", () => {
+  controller.abort();
+  console.log(dim("\n[stopped]"));
+  process.exit(130);
+});
+
+const started = Date.now();
+console.log(dim(`${PROVIDERS[provider].label}, model ${modelId}\n`));
+
+try {
+  const result = await agent.stream({ prompt: question, abortSignal: controller.signal });
+  let section: "reasoning" | "text" | null = null;
+  for await (const part of result.stream) {
+    switch (part.type) {
+      case "reasoning-delta":
+        if (section !== "reasoning") process.stdout.write(dim("\n[thinking] "));
+        section = "reasoning";
+        process.stdout.write(dim(part.text));
+        break;
+      case "text-delta":
+        if (section !== "text") process.stdout.write("\n\n");
+        section = "text";
+        process.stdout.write(part.text);
+        break;
+      case "tool-call":
+        section = null;
+        process.stdout.write(dim(`\n→ ${part.toolName} ${JSON.stringify(part.input)}`));
+        break;
+      case "tool-result": {
+        const output = part.output as { hits?: unknown[]; id?: string };
+        process.stdout.write(dim(output.hits ? ` (${output.hits.length} hits)` : ` (read ${output.id})`));
+        break;
+      }
+      case "tool-error":
+        process.stdout.write(dim(` (error: ${part.error instanceof Error ? part.error.message : String(part.error)})`));
+        break;
+      case "error":
+        throw part.error;
+    }
+  }
+  console.log(dim(`\n\n[${((Date.now() - started) / 1000).toFixed(1)}s]`));
+} catch (error) {
+  if (controller.signal.aborted) process.exit(130);
+  console.error(dim(String(error instanceof Error ? error.stack : error)));
+  fail(toChatError(error, provider).message);
+}

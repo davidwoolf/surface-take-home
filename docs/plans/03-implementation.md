@@ -44,7 +44,7 @@ Changed during M1: instead of a generic `pnpm ingest` command, the handbook is c
 
 **Done when:** you're happy with the markdown sample, and the loader tests pass.
 
-### M2 — Search, tools & retrieval check set ✅
+### M2 — Search, tools & retrieval check set ✅ (`eaa5b31`)
 - BM25 search in `modules/knowledgebase/search.ts`: stemming, stopwords, heading boost, and one hit per section with a snippet.
 - `search_handbook` and `read_section` as AI SDK tools with zod schemas, in `modules/chat/tools/`. An unknown section id throws, and the SDK returns that to the model as a tool error.
 - **Result:** the check set scores 26 of 28 in the top 5 (93%); the plain-BM25 baseline was 24 of 28. The two misses need a synonym ("vacation" → "time off") or compete with pull-request pages. The agent covers those by searching again with other words.
@@ -55,7 +55,13 @@ Changed during M1: instead of a generic `pnpm ingest` command, the handbook is c
 
 **Done when:** the expected section is in the top 5 results for at least 90% of the check set (enforced by `retrieval.test.ts`).
 
-### M3 — Agent, startup & chat API
+### M3 — Agent, startup & chat API ✅
+Notes from the build:
+- Reasoning needs per-provider options to be returned at all (see [02-architecture §3](02-architecture.md#3-chat-module-srcmoduleschat)).
+- The server removes unfinished tool calls from the history, so a follow-up after a stopped response doesn't fail at the provider.
+- Dropping a *failed* turn's partial output needs the client, which knows the turn failed, so it moves to M5.
+- Checked for real with Claude: `pnpm ask`, a curl stream through the Vite proxy, a client disconnect, and a broken knowledgebase file at `pnpm dev`.
+
 - **`scripts/dev.ts`:**
   1. The **knowledgebase preflight**, with every state from [Error handling A](02-architecture.md#a-knowledgebase-cant-be-loaded-pnpm-dev).
   2. The provider prompt.

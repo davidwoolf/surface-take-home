@@ -25,12 +25,10 @@ If a task conflicts with a plan, **stop and ask**. Don't silently deviate. If a 
 - BM25 search, in memory (MiniSearch + `stemmer`). **No embeddings.** Changes to search must keep `retrieval.test.ts` passing.
 
 ## Commands
-`pnpm ask` arrives in M3. Until then, it prints a "not implemented" message.
-
 | Command | What it does |
 |---|---|
 | `pnpm dev` | Checks the knowledgebase loads, asks which provider to use (when more than one key is set), then starts Vite and Hono |
-| `pnpm ask "<question>"` | Runs the agent headless (for manual checks) |
+| `pnpm ask "<question>"` | Runs the agent headless: prints tool calls, reasoning and the answer (uses real API keys) |
 | `pnpm test` | Unit and API tests. No network or keys needed |
 | `pnpm typecheck` | TypeScript check |
 

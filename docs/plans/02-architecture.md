@@ -73,10 +73,15 @@ Everything that uses the AI SDK lives together here: the agent, tools, prompt, p
 - **Tools** (each call streams to the UI as visible activity):
   - `search_handbook(query)` returns the top hits: chunk id, heading path and snippet.
   - `read_section(id)` returns the full section text and its links.
-- **Reasoning** uses the AI SDK's portable `reasoning` setting. A **step limit** stops the tool loop from running away.
-- **Answer format:** markdown. Quotes use a structured, parseable form that includes the source chunk id.
+- **Reasoning:** medium effort, set per provider, because each provider needs its own switch to return reasoning text: Claude `thinking.display: "summarized"`, OpenAI `reasoningSummary: "auto"`, Gemini `includeThoughts: true` (see `providers.ts`). Claude's adaptive thinking skips reasoning on easy questions, so the reasoning panel only appears when there's reasoning.
+- A **step limit** (12) stops the tool loop from running away.
+- **Answer format:** markdown. Each quote is a blockquote whose last line names its source, which M4 verifies and renders as a quote card:
+  ```
+  > exact words copied from the section
+  > — Source: Heading › Path (section-id)
+  ```
 - **Quote verification** runs after the answer: each quote is checked against its chunk after normalization, and the results are sent as a `data-quote-verification` part.
-- **Provider factory:** maps `SURFACE_PROVIDER` and the optional `*_MODEL` override to an AI SDK model.
+- **Provider factory:** maps `SURFACE_PROVIDER` and the optional `*_MODEL` override to an AI SDK model. The defaults are `claude-sonnet-5-5`, `gpt-6-astra` and `gemini-3.8-flash`, taken from each provider's current model list.
 
 ### 4. API (`src/api`, Hono)
 - `GET /api/health` reports the provider, model and knowledgebase status.

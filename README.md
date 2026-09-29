@@ -22,7 +22,7 @@ The handbook is committed in `knowledgebase/` as markdown, one file per handbook
 | Command | What it does |
 |---|---|
 | `pnpm dev` | Start the app (client + API) |
-| `pnpm ask "<question>"` | Ask a question from the terminal |
+| `pnpm ask "<question>"` | Ask a question from the terminal (shows the searches and the answer) |
 | `pnpm test` | Unit and API tests |
 | `pnpm typecheck` | TypeScript check |
 
